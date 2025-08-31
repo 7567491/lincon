@@ -9,53 +9,46 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<any>(null)
   const isLoading = ref(false)
 
-  const login = async (token: string) => {
+  // 自动初始化认证状态
+  const initAuth = async () => {
     isLoading.value = true
     try {
+      // 从环境变量获取API Token
+      const envToken = import.meta.env.VITE_LINODE_API_TOKEN
+      if (!envToken) {
+        throw new Error('未找到 VITE_LINODE_API_TOKEN 环境变量')
+      }
+
       // 设置token并验证
-      linodeAPI.setToken(token)
-      const userData = await linodeAPI.validateToken()
+      linodeAPI.setToken(envToken)
+      
+      try {
+        const userData = await linodeAPI.validateToken()
+        user.value = userData
+      } catch (error) {
+        console.warn('无法验证用户信息，但继续使用提供的token:', error)
+        user.value = { username: 'Unknown User' }
+      }
       
       // 保存认证信息
-      apiToken.value = token
+      apiToken.value = envToken
       isAuthenticated.value = true
-      user.value = userData
-      
-      // 持久化存储
-      secureStorage.save('api-token', token)
       
     } catch (error: any) {
-      throw new Error('登录失败: ' + (error.response?.data?.errors?.[0]?.reason || error.message))
+      console.error('初始化认证失败:', error.message)
+      isAuthenticated.value = false
     } finally {
       isLoading.value = false
     }
   }
 
   const logout = () => {
-    apiToken.value = ''
-    isAuthenticated.value = false
-    user.value = null
-    secureStorage.remove('api-token')
+    console.warn('使用环境变量认证模式，无法登出')
   }
 
-  // 应用启动时恢复登录状态
-  const restoreAuth = () => {
-    // 优先使用环境变量中的API Token
-    const envToken = import.meta.env.VITE_LINODE_API_TOKEN
-    if (envToken) {
-      apiToken.value = envToken
-      isAuthenticated.value = true
-      linodeAPI.setToken(envToken)
-      return
-    }
-    
-    // 回退到本地存储的token
-    const token = secureStorage.load('api-token')
-    if (token) {
-      apiToken.value = token
-      isAuthenticated.value = true
-      linodeAPI.setToken(token)
-    }
+  // 应用启动时自动认证
+  const restoreAuth = async () => {
+    await initAuth()
   }
 
   return { 
@@ -63,7 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated, 
     user, 
     isLoading, 
-    login, 
+    initAuth,
     logout, 
     restoreAuth 
   }

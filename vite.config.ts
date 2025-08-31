@@ -71,6 +71,10 @@ export default defineConfig({
     },
     cors: true // 启用CORS
   },
+  preview: {
+    host: '0.0.0.0',
+    port: 18080
+  },
   build: {
     rollupOptions: {
       output: {

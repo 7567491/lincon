@@ -7,7 +7,7 @@ class LinodeAPIService {
 
   constructor() {
     this.client = axios.create({
-      baseURL: 'https://api.linode.com/v4',
+      baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.linode.com/v4',
       timeout: 30000, // 增加超时时间到30秒
       headers: {
         'Content-Type': 'application/json',
@@ -18,6 +18,12 @@ class LinodeAPIService {
       // 确保支持HTTPS
       httpsAgent: undefined
     })
+
+    // 自动设置环境变量中的token
+    const envToken = import.meta.env.VITE_LINODE_API_TOKEN
+    if (envToken) {
+      this.setToken(envToken)
+    }
 
     // 请求拦截器 - 添加认证
     this.client.interceptors.request.use((config) => {

@@ -253,7 +253,7 @@ const filteredInstances = computed(() => {
   // 按地区过滤
   if (regionFilter.value) {
     filtered = filtered.filter(instance => 
-      instance.region?.id === regionFilter.value
+      instance.region === regionFilter.value
     )
   }
   
@@ -264,7 +264,7 @@ const filteredInstances = computed(() => {
 const availableRegions = computed(() => {
   const regions = new Set(
     instanceStore.instances
-      .map(instance => instance.region?.id)
+      .map(instance => instance.region)
       .filter(region => region)
   )
   return Array.from(regions)
@@ -339,7 +339,7 @@ const getTotalStorage = () => {
 
 const getMonthlyCost = () => {
   const totalCost = instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.type?.price?.monthly || 0), 0)
+    sum + (instance.type_info?.price?.monthly || 0), 0)
   return totalCost.toFixed(2)
 }
 

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import LoginView from '@/views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,56 +9,43 @@ const router = createRouter({
       redirect: '/instances'
     },
     {
-      path: '/login',
-      name: 'login',
-      component: LoginView
-    },
-    {
       path: '/instances',
       name: 'instances',
-      component: () => import('@/views/InstanceList.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/InstanceList.vue')
     },
     {
       path: '/instances/:id',
       name: 'instance-detail',
-      component: () => import('@/views/InstanceDetail.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/InstanceDetail.vue')
     },
     {
       path: '/buckets',
       name: 'buckets',
-      component: () => import('@/views/BucketList.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/BucketList.vue')
     },
     {
       path: '/buckets/:cluster/:bucket',
       name: 'bucket-detail',
-      component: () => import('@/views/BucketDetail.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/BucketDetail.vue')
     },
     {
       path: '/monitoring',
       name: 'monitoring',
-      component: () => import('@/views/MonitoringView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/MonitoringView.vue')
     }
   ],
 })
 
-// 路由守卫
-router.beforeEach((to) => {
+// 路由守卫 - 确保认证状态已初始化
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // 如果有环境变量中的API Token，直接认证
-  const envToken = import.meta.env.VITE_LINODE_API_TOKEN
-  if (envToken && !authStore.isAuthenticated) {
-    authStore.restoreAuth()
+  // 如果还没有认证状态，先初始化
+  if (!authStore.isAuthenticated) {
+    await authStore.restoreAuth()
   }
   
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return '/login'
-  }
+  next()
 })
 
 export default router
