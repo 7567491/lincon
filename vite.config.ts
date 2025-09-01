@@ -64,12 +64,23 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0', // 允许外部访问
-    port: 5173,
+    port: 18080,
     open: false, // 禁用自动打开浏览器
     hmr: {
       overlay: false // 禁用HMR错误覆盖层
     },
-    cors: true // 启用CORS
+    cors: true, // 启用CORS
+    proxy: {
+      '/api': {
+        target: 'https://api.linode.com/v4',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: true,
+        headers: {
+          'User-Agent': 'Linode PWA Client'
+        }
+      }
+    }
   },
   preview: {
     host: '0.0.0.0',

@@ -11,13 +11,26 @@
 ## 开发命令
 
 ### 核心命令
-- `npm run dev` - 启动开发服务器，端口 5173，允许外部访问 (0.0.0.0)
+- `npm run dev` - 启动开发服务器，端口 18080，允许外部访问 (0.0.0.0)
 - `npm run build` - 生产构建（先运行类型检查，再构建）
 - `npm run preview` - 预览生产构建，端口 18080
 - `npm run type-check` - 使用 vue-tsc 运行 TypeScript 类型检查
 - `npm run lint` - 运行 ESLint 并自动修复
 - `npm run format` - 使用 Prettier 格式化代码
 - `npm run test:unit` - 使用 Vitest 运行单元测试
+
+### 重启应用流程
+重启开发服务器时，必须先杀掉占用端口的进程：
+1. 查找占用端口的进程：`lsof -ti:18080`
+2. 杀掉进程：`kill -9 <进程ID>`
+3. 重新启动：`npm run dev`
+
+快捷命令：`lsof -ti:18080 | xargs -r kill -9 && npm run dev`
+
+### 网络配置
+- 开发环境使用 Vite 代理解决 CORS 跨域问题
+- API 请求路径：`/api/*` → `https://api.linode.com/v4/*`
+- 生产环境直接调用 `https://api.linode.com/v4`
 
 ### 测试
 - 使用 Vitest 测试框架

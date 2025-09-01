@@ -7,7 +7,7 @@ class LinodeAPIService {
 
   constructor() {
     this.client = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.linode.com/v4',
+      baseURL: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_BASE_URL || 'https://api.linode.com/v4'),
       timeout: 30000, // 增加超时时间到30秒
       headers: {
         'Content-Type': 'application/json',
@@ -92,48 +92,8 @@ class LinodeAPIService {
 
   // Object Storage API methods
   async getObjectStorageBuckets(): Promise<any> {
-    try {
-      // 尝试使用真实API获取存储桶
-      const response = await this.client.get('/object-storage/buckets')
-      return response.data
-    } catch (error: any) {
-      // 如果API调用失败，返回模拟数据作为演示
-      console.warn('无法获取真实存储桶数据，使用演示数据:', error.message)
-      
-      const mockBuckets = [
-        {
-          cluster: 'us-east-1',
-          label: 'demo-website-assets',
-          created: '2024-01-15T10:30:00Z',
-          hostname: 'demo-website-assets.us-east-1.linodeobjects.com',
-          objects: 156,
-          size: 2048000000 // 2GB in bytes
-        },
-        {
-          cluster: 'eu-west-1', 
-          label: 'demo-backup-storage',
-          created: '2024-02-20T14:15:00Z',
-          hostname: 'demo-backup-storage.eu-west-1.linodeobjects.com',
-          objects: 89,
-          size: 5120000000 // 5GB in bytes
-        },
-        {
-          cluster: 'ap-south-1',
-          label: 'demo-media-files',
-          created: '2024-03-10T09:45:00Z', 
-          hostname: 'demo-media-files.ap-south-1.linodeobjects.com',
-          objects: 234,
-          size: 1024000000 // 1GB in bytes
-        }
-      ]
-      
-      return {
-        data: mockBuckets,
-        page: 1,
-        pages: 1,
-        results: mockBuckets.length
-      }
-    }
+    const response = await this.client.get('/object-storage/buckets')
+    return response.data
   }
 
   async createBucket(cluster: string, label: string): Promise<any> {
@@ -159,45 +119,8 @@ class LinodeAPIService {
   }
 
   async getObjectStorageClusters(): Promise<any> {
-    try {
-      // 尝试使用真实API获取存储集群
-      const response = await this.client.get('/object-storage/clusters')
-      return response.data
-    } catch (error: any) {
-      // 如果API调用失败，返回模拟数据作为演示
-      console.warn('无法获取真实存储集群数据，使用演示数据:', error.message)
-      
-      const mockClusters = [
-        {
-          id: 'us-east-1',
-          domain: 'us-east-1.linodeobjects.com',
-          status: 'available',
-          region: 'US East',
-          static_site_domain: 'website-us-east-1.linodeobjects.com'
-        },
-        {
-          id: 'eu-west-1',
-          domain: 'eu-west-1.linodeobjects.com', 
-          status: 'available',
-          region: 'EU West',
-          static_site_domain: 'website-eu-west-1.linodeobjects.com'
-        },
-        {
-          id: 'ap-south-1',
-          domain: 'ap-south-1.linodeobjects.com',
-          status: 'available', 
-          region: 'Asia Pacific',
-          static_site_domain: 'website-ap-south-1.linodeobjects.com'
-        }
-      ]
-      
-      return {
-        data: mockClusters,
-        page: 1,
-        pages: 1,
-        results: mockClusters.length
-      }
-    }
+    const response = await this.client.get('/object-storage/clusters')
+    return response.data
   }
 
   async getObjectStorageKeys(): Promise<any> {

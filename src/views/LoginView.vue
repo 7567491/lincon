@@ -81,7 +81,7 @@ const handleLogin = async () => {
   error.value = ''
 
   try {
-    await authStore.login(form.token)
+    await authStore.initAuth()
     router.push('/instances')
   } catch (err: any) {
     error.value = err.message
