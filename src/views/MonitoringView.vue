@@ -60,8 +60,19 @@
       <p>正在加载监控数据...</p>
     </div>
 
+    <!-- 监控数据获取失败状态 -->
+    <div v-else-if="selectedInstanceId && error && currentStatus.cpu === 0" class="error-state">
+      <div class="error-icon-large">📊</div>
+      <h3>监控数据不可用</h3>
+      <p>{{ error }}</p>
+      <button class="retry-btn" @click="loadMonitoringData" :disabled="isLoading">
+        <span class="refresh-icon" :class="{ 'spinning': isLoading }">🔄</span>
+        重试
+      </button>
+    </div>
+
     <!-- 系统状态面板 -->
-    <div v-else-if="selectedInstanceId" class="status-panels">
+    <div v-else-if="selectedInstanceId && currentStatus.cpu > 0" class="status-panels">
       <!-- CPU状态卡片 -->
       <div class="status-card cpu">
         <div class="status-header">
@@ -272,11 +283,23 @@ const loadMonitoringData = async () => {
       lastUpdateTime.value = new Date()
       error.value = '使用基础监控数据'
     } catch (basicErr: any) {
-      console.warn('所有真实数据获取失败，使用模拟数据')
-      const mockStatus = generateMockSystemStatus()
-      currentStatus.value = mockStatus
-      lastUpdateTime.value = new Date()
-      error.value = '无法连接监控服务，显示模拟数据'
+      console.error('无法获取监控数据:', basicErr.message)
+      error.value = `监控数据获取失败: ${basicErr.response?.data?.errors?.[0]?.reason || basicErr.message}`
+      currentStatus.value = {
+        cpu: 0,
+        memoryPercent: 0,
+        memoryUsed: 0,
+        memoryTotal: 0,
+        diskPercent: 0,
+        diskUsed: 0,
+        diskTotal: 0,
+        networkSpeed: '0 KB/s',
+        networkRx: 0,
+        networkTx: 0,
+        uptime: '未知',
+        loadAverage: '0.00',
+        processes: 0
+      }
     }
   } finally {
     isLoading.value = false
@@ -285,7 +308,7 @@ const loadMonitoringData = async () => {
 
 // 解析增强监控数据（使用真实配置信息）
 const parseLinodeStats = (metricsData: any, instanceConfig: any) => {
-  const stats = metricsData.stats || {}
+  const stats = metricsData.stats?.data || metricsData.stats || {}
   const transfer = metricsData.transfer || {}
   
   // 获取实例真实规格
@@ -411,45 +434,6 @@ const parseBasicStats = (statsData: any) => {
   }
 }
 
-const generateMockSystemStatus = () => {
-  // 最小化模拟数据使用 - 仅在完全无法连接时使用
-  console.warn('监控服务完全不可用，生成最小模拟数据')
-  
-  const cpu = 25 // 固定25%避免随机性
-  const memoryTotal = 8 * 1024 * 1024 * 1024 // 8GB
-  const memoryUsed = Math.round(memoryTotal * 0.4) // 40%固定使用率
-  const memoryPercent = 40
-  
-  const diskTotal = 50 * 1024 * 1024 * 1024 // 50GB
-  const diskUsed = Math.round(diskTotal * 0.35) // 35%固定使用率
-  const diskPercent = 35
-  
-  const networkRx = 500000000 // 500MB固定值
-  const networkTx = 250000000 // 250MB固定值
-  const networkSpeedKBps = 128 // 128 KB/s固定值
-  
-  const uptimeDays = 7 // 固定7天
-  const uptimeHours = 12 // 固定12小时
-  
-  const loadAvg = '0.75' // 固定负载
-  const processes = 85 // 固定进程数
-
-  return {
-    cpu,
-    memoryPercent,
-    memoryUsed,
-    memoryTotal,
-    diskPercent,
-    diskUsed,
-    diskTotal,
-    networkSpeed: `${networkSpeedKBps} KB/s`,
-    networkRx,
-    networkTx,
-    uptime: `${uptimeDays}天 ${uptimeHours}小时`,
-    loadAverage: loadAvg,
-    processes
-  }
-}
 
 
 const handleRefresh = () => {
@@ -768,6 +752,56 @@ const formatDate = (dateString: string): string => {
   color: #b0b0b0;
   font-size: 16px;
   margin-bottom: 24px;
+}
+
+/* 错误状态 */
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.error-icon-large {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.error-state h3 {
+  color: #dc3545;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.error-state p {
+  color: #b0b0b0;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.retry-btn {
+  background: rgba(55, 131, 220, 0.2);
+  color: #3683dc;
+  border: 1px solid rgba(55, 131, 220, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.retry-btn:hover:not(:disabled) {
+  background: rgba(55, 131, 220, 0.3);
+  border-color: rgba(55, 131, 220, 0.5);
+}
+
+.retry-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* 状态面板网格 */
