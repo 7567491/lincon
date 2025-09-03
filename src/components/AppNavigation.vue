@@ -27,6 +27,15 @@
         <span class="nav-icon">📊</span>
         <span class="nav-text">监控</span>
       </router-link>
+
+      <router-link
+        to="/billing"
+        class="nav-link"
+        :class="{ active: $route.path.startsWith('/billing') }"
+      >
+        <span class="nav-icon">💰</span>
+        <span class="nav-text">费用</span>
+      </router-link>
     </div>
   </nav>
 </template>

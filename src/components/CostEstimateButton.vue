@@ -77,8 +77,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { billingService } from '@/services/billingService'
 import type { CostSummary } from '@/types'
+
+const router = useRouter()
 
 const isLoading = ref(false)
 const showSummary = ref(false)
@@ -108,8 +111,7 @@ const generateEstimate = async () => {
 }
 
 const viewDetails = () => {
-  // TODO: 导航到详细的费用分析页面
-  console.log('导航到费用详情页面')
+  router.push('/billing')
 }
 
 const exportData = () => {
