@@ -115,3 +115,69 @@ export interface MonitoringStats {
     write_bytes: number;
   }>;
 }
+
+// 费用预估相关类型
+export interface ResourceStateLog {
+  id: string;
+  resourceType: 'instance' | 'object-storage';
+  resourceId: string;
+  action: 'start' | 'stop' | 'create' | 'delete';
+  timestamp: Date;
+  state: 'running' | 'offline' | 'active';
+  metadata: {
+    instanceType?: string;
+    specs?: LinodeInstance['specs'];
+    bucketSize?: number;
+    region?: string;
+  };
+}
+
+export interface BillingPeriod {
+  id: string;
+  resourceId: string;
+  resourceType: 'instance' | 'object-storage';
+  resourceLabel: string;
+  instanceType?: string;
+  startTime: Date;
+  endTime?: Date; // null表示仍在运行
+  duration: number; // 小时数
+  cost: number;
+  hourlyRate: number;
+  monthlyRate?: number;
+}
+
+export interface DailyCost {
+  date: string; // YYYY-MM-DD格式
+  instanceCost: number;
+  storageCost: number;
+  totalCost: number;
+  details: Array<{
+    resourceId: string;
+    resourceLabel: string;
+    resourceType: 'instance' | 'object-storage';
+    cost: number;
+    hours: number;
+  }>;
+}
+
+export interface CostSummary {
+  monthToDateCost: number;
+  projectedMonthlyCost: number;
+  currentMonthDays: number;
+  remainingDays: number;
+  dailyAverage: number;
+  instancesCost: number;
+  storageCost: number;
+}
+
+export interface PricingConfig {
+  instances: Record<string, {
+    hourly: number;
+    monthly: number;
+  }>;
+  objectStorage: {
+    baseFee: number;
+    transferCost: number;
+  };
+  lastUpdated: string;
+}

@@ -118,6 +118,9 @@
             <span class="resource-value cost">${{ getMonthlyCost() }}</span>
           </div>
         </div>
+        
+        <!-- V3新增：详细费用预估按钮 -->
+        <CostEstimateButton />
       </div>
     </section>
 
@@ -255,6 +258,7 @@ import { useInstanceStore } from "@/stores/instances";
 import { useAuthStore } from "@/stores/auth";
 import InstanceCard from "@/components/InstanceCard.vue";
 import AppNavigation from "@/components/AppNavigation.vue";
+import CostEstimateButton from "@/components/CostEstimateButton.vue";
 
 const router = useRouter();
 const instanceStore = useInstanceStore();

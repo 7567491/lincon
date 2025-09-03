@@ -1,6 +1,7 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 import { linodeAPI } from "@/services/linodeAPI";
+import { billingService } from "@/services/billingService";
 import type { LinodeInstance } from "@/types";
 
 export const useInstanceStore = defineStore("instances", () => {
@@ -73,12 +74,99 @@ export const useInstanceStore = defineStore("instances", () => {
           newStatus: newInstance.status,
           timestamp: new Date(),
         });
+        
+        // V3新增：费用日志记录
+        logInstanceStatusChange(oldInstance, newInstance);
+        
         // 只保留最近50条记录
         if (statusChangeHistory.value.length > 50) {
           statusChangeHistory.value = statusChangeHistory.value.slice(0, 50);
         }
       }
     });
+  };
+
+  // V3新增：记录实例状态变化的费用日志
+  const logInstanceStatusChange = (
+    oldInstance: LinodeInstance,
+    newInstance: LinodeInstance,
+  ) => {
+    try {
+      // 检测实例启动
+      if (oldInstance.status === "offline" && newInstance.status === "running") {
+        billingService.logResourceStateChange({
+          resourceType: "instance",
+          resourceId: newInstance.id.toString(),
+          action: "start",
+          state: "running",
+          metadata: {
+            instanceType: newInstance.type,
+            specs: newInstance.specs,
+            region: newInstance.region,
+          },
+        });
+      }
+      
+      // 检测实例停止
+      if (oldInstance.status === "running" && newInstance.status === "offline") {
+        billingService.logResourceStateChange({
+          resourceType: "instance",
+          resourceId: newInstance.id.toString(),
+          action: "stop",
+          state: "offline",
+          metadata: {
+            instanceType: newInstance.type,
+            specs: newInstance.specs,
+            region: newInstance.region,
+          },
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to log billing state change:", error);
+    }
+  };
+
+  // V3新增：记录手动操作的费用日志
+  const logManualAction = async (action: string, instanceId: number) => {
+    try {
+      const instance = instances.value.find(inst => inst.id === instanceId);
+      if (!instance) return;
+
+      let billingAction: 'start' | 'stop' | 'start' = 'start';
+      let billingState: 'running' | 'offline' | 'running' = 'running';
+
+      switch (action) {
+        case "boot":
+          billingAction = "start";
+          billingState = "running";
+          break;
+        case "shutdown":
+          billingAction = "stop";
+          billingState = "offline";
+          break;
+        case "reboot":
+          // 重启视为先停止再启动，这里记录启动
+          billingAction = "start";
+          billingState = "running";
+          break;
+        default:
+          return;
+      }
+
+      billingService.logResourceStateChange({
+        resourceType: "instance",
+        resourceId: instanceId.toString(),
+        action: billingAction,
+        state: billingState,
+        metadata: {
+          instanceType: instance.type,
+          specs: instance.specs,
+          region: instance.region,
+        },
+      });
+    } catch (error) {
+      console.warn("Failed to log manual billing action:", error);
+    }
   };
 
   const loadInstance = async (id: number) => {
@@ -119,6 +207,9 @@ export const useInstanceStore = defineStore("instances", () => {
         message: `${getActionLabel(action)}操作已启动`,
         timestamp: new Date(),
       });
+
+      // V3新增：手动操作的费用日志记录
+      await logManualAction(action, instanceId);
 
       // 重新加载实例状态（静默模式）
       await loadInstances(true);
