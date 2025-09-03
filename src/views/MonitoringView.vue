@@ -77,9 +77,33 @@
       </button>
     </div>
 
+    <!-- 趋势图表 -->
+    <div
+      v-if="selectedInstanceId"
+      class="charts-section"
+    >
+      <MetricsChart
+        title="CPU 使用率"
+        metric="cpu"
+        color="#3b82f6"
+        unit="%"
+        chart-id="cpu-chart"
+        ref="cpuChart"
+      />
+      
+      <MetricsChart
+        title="内存使用率"
+        metric="memory"
+        color="#ef4444"
+        unit="%"
+        chart-id="memory-chart"
+        ref="memoryChart"
+      />
+    </div>
+
     <!-- 系统状态面板 -->
     <div
-      v-else-if="selectedInstanceId && currentStatus.cpu > 0"
+      v-if="selectedInstanceId && currentStatus.cpu > 0"
       class="status-panels"
     >
       <!-- CPU状态卡片 -->
@@ -221,7 +245,7 @@
     </div>
 
     <!-- 无实例选择状态 -->
-    <div v-else class="empty-state">
+    <div v-if="!selectedInstanceId" class="empty-state">
       <div class="empty-icon">📊</div>
       <h3>选择要监控的实例</h3>
       <p>请在上方选择一个实例来查看其监控数据</p>
@@ -239,6 +263,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useInstanceStore } from "@/stores/instances";
 import { linodeAPI } from "@/services/linodeAPI";
 import AppNavigation from "@/components/AppNavigation.vue";
+import MetricsChart from "@/components/MetricsChart.vue";
 
 const instanceStore = useInstanceStore();
 
@@ -249,6 +274,10 @@ const error = ref<string | null>(null);
 const isAutoRefreshing = ref(false);
 const autoRefreshTimer = ref<ReturnType<typeof setInterval> | null>(null);
 const lastUpdateTime = ref<Date | null>(null);
+
+// 图表引用
+const cpuChart = ref<InstanceType<typeof MetricsChart>>();
+const memoryChart = ref<InstanceType<typeof MetricsChart>>();
 
 // 当前系统状态
 const currentStatus = ref({
@@ -269,9 +298,20 @@ const currentStatus = ref({
 
 // 组件挂载时初始化数据
 onMounted(async () => {
-  await instanceStore.loadInstances();
-  if (instanceStore.instances.length > 0) {
-    selectedInstanceId.value = instanceStore.instances[0].id;
+  try {
+    await instanceStore.loadInstances();
+    if (instanceStore.instances.length > 0) {
+      selectedInstanceId.value = instanceStore.instances[0].id;
+      await loadMonitoringData();
+    } else {
+      // 如果没有实例，创建一个本地监控实例
+      selectedInstanceId.value = 999999; // 虚拟实例ID
+      await loadMonitoringData();
+    }
+  } catch (error) {
+    console.warn('加载实例失败，使用本地监控模式:', error);
+    // API调用失败时也显示本地监控
+    selectedInstanceId.value = 999999; // 虚拟实例ID  
     await loadMonitoringData();
   }
 });
@@ -284,7 +324,7 @@ onUnmounted(() => {
 // 获取本地系统真实监控数据
 const getLocalSystemMetrics = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:3002/metrics');
+    const response = await fetch('/monitor-api/metrics');
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
@@ -531,6 +571,9 @@ const parseBasicStats = (statsData: any) => {
 
 const handleRefresh = () => {
   loadMonitoringData();
+  // 刷新图表数据
+  cpuChart.value?.refresh();
+  memoryChart.value?.refresh();
 };
 
 const toggleAutoRefresh = () => {
@@ -616,6 +659,11 @@ const formatDate = (dateString: string): string => {
 </script>
 
 <style scoped>
+/* 图表部分样式 */
+.charts-section {
+  margin-bottom: 20px;
+}
+
 .monitoring-container {
   padding: 20px;
   max-width: 1400px;

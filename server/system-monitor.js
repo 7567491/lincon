@@ -241,6 +241,69 @@ async function getSystemInfo() {
   }
 }
 
+// 获取历史监控数据
+async function getHistoryData(minutes = 30) {
+  const now = new Date();
+  const cutoffTime = new Date(now.getTime() - minutes * 60 * 1000);
+  const allData = [];
+
+  try {
+    // 读取当前小时和前几个小时的日志文件
+    const hoursToCheck = Math.ceil(minutes / 60) + 1;
+    
+    for (let i = 0; i < hoursToCheck; i++) {
+      const checkTime = new Date(now.getTime() - i * 60 * 60 * 1000);
+      const fileName = `${checkTime.getFullYear()}-${String(checkTime.getMonth() + 1).padStart(2, '0')}-${String(checkTime.getDate()).padStart(2, '0')}-${String(checkTime.getHours()).padStart(2, '0')}.json`;
+      const filePath = join(PYTHON_LOGS_DIR, fileName);
+      
+      if (existsSync(filePath)) {
+        const fileContent = await fs.readFile(filePath, 'utf-8');
+        const lines = fileContent.trim().split('\n').filter(line => line.trim());
+        
+        for (const line of lines) {
+          try {
+            const record = JSON.parse(line);
+            const recordTime = new Date(record.timestamp);
+            
+            if (recordTime >= cutoffTime) {
+              allData.push({
+                timestamp: record.timestamp,
+                cpu: Math.round(record.cpu_percent),
+                memory: Math.round(record.memory.percent),
+                disk: Math.round(record.disk.percent),
+                network: {
+                  rx: record.network.bytes_recv,
+                  tx: record.network.bytes_sent
+                }
+              });
+            }
+          } catch (parseError) {
+            // 忽略解析错误的行
+            continue;
+          }
+        }
+      }
+    }
+
+    // 按时间排序
+    allData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    console.log(`获取到 ${allData.length} 条历史数据 (${minutes}分钟)`);
+    
+    return {
+      dataPoints: allData,
+      timeRange: minutes,
+      count: allData.length,
+      startTime: allData.length > 0 ? allData[0].timestamp : null,
+      endTime: allData.length > 0 ? allData[allData.length - 1].timestamp : null
+    };
+    
+  } catch (error) {
+    console.error('获取历史数据失败:', error);
+    throw error;
+  }
+}
+
 // 聚合所有监控数据
 async function getAllMetrics() {
   try {
@@ -346,6 +409,20 @@ const server = createServer(async (req, res) => {
       status: 'ok',
       timestamp: new Date().toISOString()
     }));
+  } else if (url.pathname === '/history' && req.method === 'GET') {
+    try {
+      const minutes = parseInt(url.searchParams.get('minutes')) || 30;
+      const historyData = await getHistoryData(minutes);
+      
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(historyData, null, 2));
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        error: '获取历史数据失败',
+        message: error.message 
+      }));
+    }
   } else {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not Found' }));

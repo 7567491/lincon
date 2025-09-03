@@ -2,9 +2,9 @@
 
 请用中文和我对话。
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为Claude Code (claude.ai/code) 在此代码库中工作提供指导。
 
-## Project Identity & User Context
+## 项目身份与用户上下文
 
 ⚠️ **重要说明**: 这是 `lincon` 用户的主要项目，位于 `/home/lincon/lincon/`
 
@@ -50,9 +50,9 @@ npm run dev               # 应该启动在端口 18080
 
 **如果上述任何检查不符合预期，请停止操作并重新确认工作环境！**
 
-## Project Overview
+## 项目概述
 
-This is a Vue 3 PWA (Progressive Web Application) for managing Linode cloud services, built with TypeScript, Vite, and Pinia. The application provides a mobile-friendly interface to manage Linode instances and object storage buckets.
+这是一个用于管理Linode云服务的Vue 3 PWA (渐进式Web应用程序)，使用TypeScript、Vite和Pinia构建。该应用程序提供了一个移动友好的界面来管理Linode实例和对象存储桶。
 
 **项目标识**: 
 - 名称: `linode-pwa`
@@ -61,87 +61,153 @@ This is a Vue 3 PWA (Progressive Web Application) for managing Linode cloud serv
 - 域名: `con.linapp.fun`
 - 端口: 18080 (前端), 3002 (监控服务)
 
-## Development Commands
+## 开发命令
 
-### Core Commands
-- `npm run dev` - Start development server with monitoring on port 18080 (auto-starts system monitor on port 3002)
-- `npm run dev:frontend` - Start only frontend server without monitoring
-- `npm run monitor:start` - Start system monitoring service on port 3002  
-- `npm run monitor:stop` - Stop system monitoring service
-- `npm run build` - Production build (runs type-check first, then builds)
-- `npm run preview` - Preview production build on port 18080
-- `npm run type-check` - Run TypeScript type checking with vue-tsc
-- `npm run lint` - Run ESLint with auto-fix (ESLint v9 configured)
-- `npm run format` - Format code with Prettier
-- `npm run test:unit` - Run unit tests with Vitest
+### 核心命令
+- `npm run dev` - 在端口18080启动带监控的开发服务器（自动在端口3002启动系统监控）
+- `npm run dev:frontend` - 仅启动前端服务器，不包含监控
+- `npm run monitor:start` - 在端口3002启动系统监控服务  
+- `npm run monitor:stop` - 停止系统监控服务
+- `npm run build` - 生产构建（先进行类型检查，然后构建）
+- `npm run preview` - 在端口18080预览生产构建
+- `npm run type-check` - 使用vue-tsc进行TypeScript类型检查
+- `npm run lint` - 运行ESLint并自动修复（已配置ESLint v9）
+- `npm run format` - 使用Prettier格式化代码
+- `npm run test:unit` - 使用Vitest运行单元测试
 
-### Single Test Execution
-- `npx vitest run <test-file>` - Run a specific test file
-- `npx vitest` - Run tests in watch mode
+### 单个测试执行
+- `npx vitest run <test-file>` - 运行特定测试文件
+- `npx vitest` - 以监视模式运行测试
 
-### Port Management
-When restarting the development server, you must kill processes using the ports first:
-1. Find processes using ports: `lsof -ti:18080,3002`
-2. Kill processes: `kill -9 <process-id>`
-3. Restart: `npm run dev`
+### 端口管理
+重启开发服务器时，必须先终止使用该端口的进程：
+1. 查找使用端口的进程: `lsof -ti:18080,3002`
+2. 终止进程: `kill -9 <process-id>`
+3. 重启: `npm run dev`
 
-Quick commands: 
-- Frontend only: `lsof -ti:18080 | xargs -r kill -9 && npm run dev:frontend`
-- Full stack: `lsof -ti:18080,3002 | xargs -r kill -9 && npm run dev`
-- Use integrated script: `./start-with-monitoring.sh` (handles cleanup automatically)
+快速命令: 
+- 仅前端: `lsof -ti:18080 | xargs -r kill -9 && npm run dev:frontend`
+- 全栈: `lsof -ti:18080,3002 | xargs -r kill -9 && npm run dev`
+- 使用集成脚本: `./start-with-monitoring.sh` （自动处理清理）
 
-### Production Service Management
-- PM2 ecosystem configuration available in `ecosystem.config.js`
-- Service monitoring scripts in `scripts/` directory
-- Health check: `./scripts/health-check.sh`
+### 生产服务管理
+- PM2生态系统配置可在`ecosystem.config.js`中找到
+- 服务监控脚本在`scripts/`目录中
+- 健康检查: `./scripts/health-check.sh`
 
-## Architecture
+## 监控系统架构（增强版）
 
-### State Management (Pinia Stores)
-Located in `src/stores/`:
-- `auth.ts` - Authentication and user session management with environment variable auto-authentication
-- `instances.ts` - Linode instance state management
-- `buckets.ts` - Object storage bucket state management
+### 双数据源监控实现
+监控系统使用双数据源架构:
+- **Python监控服务** - 主要数据源，包含以下组件：
+  - `system_monitor.py` - 核心监控模块，使用psutil收集系统指标
+  - `monitor_daemon.py` - 守护进程，持续采集并写入日志文件
+  - `view_monitoring_data.py` - 数据查看器，提供监控数据统计分析
+  - `test_system_monitor.py` - 测试套件，确保监控功能稳定性
+- **Node.js监控API** (`server/system-monitor.js`) - 服务层，优先读取Python数据，自动降级到shell命令
 
-### API Layer
-- `src/services/linodeAPI.ts` - Main Linode API service class with comprehensive error handling
-- `src/services/s3Service.ts` - S3-compatible object storage operations
-- Environment-based configuration: development uses Vite proxy (`/api/*` → `https://api.linode.com/v4/*`), production calls API directly
+### Python监控模块详细说明
+**数据收集 (`SystemDataCollector`)**:
+- CPU使用率 (psutil.cpu_percent)
+- 内存使用情况 (virtual_memory: total, used, free, percent) 
+- 磁盘空间统计 (disk_usage: total, used, free, percent)
+- 网络IO统计 (net_io_counters: bytes_sent/recv, packets_sent/recv)
 
-### Routing & Navigation
-- Vue Router 4 with lazy-loaded route components
-- Routes: `/instances`, `/instances/:id`, `/buckets`, `/buckets/:cluster/:bucket`, `/monitoring`
-- Authentication guard automatically restores auth state on route navigation
+**日志管理 (`LogFileManager`)**:
+- 按小时分割日志文件 (格式: YYYY-MM-DD-HH.json)
+- 异步文件写入，支持高并发数据记录
+- 自动创建日志目录结构
 
-### Component Architecture
-- `src/components/` - Reusable UI components including mobile-optimized layouts
-- `src/views/` - Page-level components corresponding to routes
-- Mobile-first responsive design with iPhone frame simulation
+**数据检索 (`DataRetriever`)**:
+- 按时间范围查询历史数据
+- 数据聚合和统计分析
+- 支持多种数据导出格式
 
-### Build Configuration
-- Vite with Vue 3, TypeScript, and JSX support
-- Manual code splitting: vendor chunk (Vue ecosystem), api chunk (Axios)
-- Development server allows external access on 0.0.0.0:18080
-- CORS proxy configuration for development API calls
+### 数据流程
+1. **Python守护进程** (`monitor_daemon.py`) 每60秒收集系统指标
+2. **日志存储** - 数据保存到`/home/lincon/logs/`（按小时分割的JSON文件）
+3. **Node.js API服务** - 读取最新Python日志数据并通过HTTP提供:
+   - `GET /metrics` - 实时系统指标
+   - `GET /health` - 服务健康检查
+4. **前端消费** - `MonitoringView.vue`每5秒自动刷新数据
+5. **降级机制** - Python数据不可用 → Shell命令数据 → 模拟数据
 
-### Authentication Flow
-- Environment variable based authentication (`VITE_LINODE_API_TOKEN`)
-- Automatic token validation on app initialization
-- No manual login required - token must be provided via environment variables
+### Python监控模块管理命令
+**启动监控守护进程**:
+```bash
+# 启动Python监控守护进程（每60秒采集一次）
+python3 monitor_daemon.py
 
-### Error Handling Strategy
-- Comprehensive API error interceptors with specific error type handling
-- Network error detection and user-friendly error messages
-- Graceful fallbacks for missing monitoring data
+# 后台运行监控守护进程
+nohup python3 monitor_daemon.py > monitor.log 2>&1 &
+```
 
-### Testing Setup
-- Vitest with jsdom environment for Vue component testing
-- ESLint configuration includes Vitest plugin rules
-- TypeScript support in test files
+**查看监控数据**:
+```bash
+# 查看最近12小时的监控数据统计
+python3 view_monitoring_data.py
 
-## Server Infrastructure Context
+# 运行监控模块测试
+python3 -m pytest test_system_monitor.py -v
+```
 
-### S3 Storage Mounts
+**数据文件位置**:
+- 监控日志: `/home/lincon/logs/YYYY-MM-DD-HH.json`
+- 每小时一个文件，自动轮转
+- JSON格式，每行一条监控记录
+
+### 监控端点
+- 端口3002（可通过`MONITOR_PORT`配置）
+- 启用CORS以支持前端集成
+- 通过SIGTERM/SIGINT信号优雅关闭
+
+## 架构设计
+
+### 状态管理 (Pinia Stores)
+位于`src/stores/`:
+- `auth.ts` - 身份验证和用户会话管理，支持环境变量自动身份验证
+- `instances.ts` - Linode实例状态管理
+- `buckets.ts` - 对象存储桶状态管理
+
+### API层
+- `src/services/linodeAPI.ts` - 主要的Linode API服务类，包含全面的错误处理
+- `src/services/s3Service.ts` - S3兼容的对象存储操作
+- 基于环境的配置：开发环境使用Vite代理 (`/api/*` → `https://api.linode.com/v4/*`)，生产环境直接调用API
+
+### 路由与导航
+- Vue Router 4带有懒加载路由组件
+- 路由: `/instances`, `/instances/:id`, `/buckets`, `/buckets/:cluster/:bucket`, `/monitoring`
+- 身份验证守卫在路由导航时自动恢复身份验证状态
+
+### 组件架构
+- `src/components/` - 可重用的UI组件，包括移动端优化布局
+- `src/views/` - 与路由对应的页面级组件
+- 移动端优先的响应式设计，带有iPhone框架模拟
+
+### 构建配置
+- Vite支持Vue 3、TypeScript和JSX
+- 手动代码分割：vendor chunk (Vue生态系统)，api chunk (Axios)
+- 开发服务器在0.0.0.0:18080允许外部访问
+- 为开发API调用配置CORS代理
+
+### 身份验证流程
+- 基于环境变量的身份验证 (`VITE_LINODE_API_TOKEN`)
+- 应用初始化时自动令牌验证
+- 无需手动登录 - 必须通过环境变量提供令牌
+
+### 错误处理策略
+- 全面的API错误拦截器，包含特定错误类型处理
+- 网络错误检测和用户友好的错误消息
+- 缺少监控数据时的优雅降级
+
+### 测试设置
+- 使用jsdom环境的Vitest进行Vue组件测试
+- ESLint配置包含Vitest插件规则
+- 测试文件中的TypeScript支持
+
+## 服务器基础设施上下文
+
+### S3存储挂载点
 服务器有以下S3存储挂载点，但与本项目无关：
 - `/mnt/www` → S3存储桶 (供www用户的存储查看器使用)
 - `/mnt/6page` → 另一个S3存储桶
@@ -164,19 +230,18 @@ pm2 logs system-monitor    # 查看监控服务日志
 - 监控服务仅获取系统级别的公开指标
 - 不访问其他用户的敏感数据
 
-## Environment Variables Required
-- `VITE_LINODE_API_TOKEN` - Required Linode API access token
-- `VITE_S3_ACCESS_KEY` - Optional for object storage access
-- `VITE_S3_SECRET_KEY` - Optional for object storage access
-- `VITE_S3_REGION` - Optional, defaults to ap-south-1
-- `VITE_S3_ENDPOINT` - Optional object storage endpoint
+## 必需环境变量
+- `VITE_LINODE_API_TOKEN` - 必需的Linode API访问令牌
+- `VITE_S3_ACCESS_KEY` - 可选，用于对象存储访问
+- `VITE_S3_SECRET_KEY` - 可选，用于对象存储访问
+- `VITE_S3_REGION` - 可选，默认为ap-south-1
+- `VITE_S3_ENDPOINT` - 可选的对象存储端点
 
-### Monitoring Service Variables (新增)
+### 监控服务变量
 - `MONITOR_PORT` - 监控服务端口，默认3002
-- `MONITOR_HOST` - 监控服务主机，默认127.0.0.1
-- `MONITOR_UPDATE_INTERVAL` - 数据更新间隔，默认5000ms
+- 系统监控集成了Python和Node.js数据源，带有自动降级机制
 
-## Project History & Context
+## 项目历史与上下文
 
 ### 项目演进历史
 1. **初始阶段**: 基础Linode管理界面

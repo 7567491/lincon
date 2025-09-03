@@ -81,6 +81,11 @@ export default defineConfig({
           "User-Agent": "Linode PWA Client",
         },
       },
+      "/monitor-api": {
+        target: "http://127.0.0.1:3002",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/monitor-api/, ""),
+      },
     },
   },
   preview: {
