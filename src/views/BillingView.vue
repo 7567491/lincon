@@ -290,6 +290,7 @@ const storagePercentage = computed(() => {
   );
 });
 
+
 const availableDays = computed(() => {
   return dailyCosts.value
     .filter((day) => day.totalCost > 0)
