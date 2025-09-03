@@ -47,6 +47,9 @@ export const useInstanceStore = defineStore("instances", () => {
       // V2新增：检测状态变化
       if (instances.value.length > 0) {
         detectStatusChanges(instances.value, newInstances);
+      } else {
+        // V3新增：首次加载时初始化已运行实例的费用记录
+        initializeExistingInstances(newInstances);
       }
 
       instances.value = newInstances;
@@ -74,10 +77,10 @@ export const useInstanceStore = defineStore("instances", () => {
           newStatus: newInstance.status,
           timestamp: new Date(),
         });
-        
+
         // V3新增：费用日志记录
         logInstanceStatusChange(oldInstance, newInstance);
-        
+
         // 只保留最近50条记录
         if (statusChangeHistory.value.length > 50) {
           statusChangeHistory.value = statusChangeHistory.value.slice(0, 50);
@@ -93,7 +96,10 @@ export const useInstanceStore = defineStore("instances", () => {
   ) => {
     try {
       // 检测实例启动
-      if (oldInstance.status === "offline" && newInstance.status === "running") {
+      if (
+        oldInstance.status === "offline" &&
+        newInstance.status === "running"
+      ) {
         billingService.logResourceStateChange({
           resourceType: "instance",
           resourceId: newInstance.id.toString(),
@@ -106,9 +112,12 @@ export const useInstanceStore = defineStore("instances", () => {
           },
         });
       }
-      
+
       // 检测实例停止
-      if (oldInstance.status === "running" && newInstance.status === "offline") {
+      if (
+        oldInstance.status === "running" &&
+        newInstance.status === "offline"
+      ) {
         billingService.logResourceStateChange({
           resourceType: "instance",
           resourceId: newInstance.id.toString(),
@@ -129,11 +138,11 @@ export const useInstanceStore = defineStore("instances", () => {
   // V3新增：记录手动操作的费用日志
   const logManualAction = async (action: string, instanceId: number) => {
     try {
-      const instance = instances.value.find(inst => inst.id === instanceId);
+      const instance = instances.value.find((inst) => inst.id === instanceId);
       if (!instance) return;
 
-      let billingAction: 'start' | 'stop' | 'start' = 'start';
-      let billingState: 'running' | 'offline' | 'running' = 'running';
+      let billingAction: "start" | "stop" | "start" = "start";
+      let billingState: "running" | "offline" | "running" = "running";
 
       switch (action) {
         case "boot":
@@ -281,6 +290,36 @@ export const useInstanceStore = defineStore("instances", () => {
 
   const clearOperationResults = () => {
     lastOperationResults.value.clear();
+  };
+
+  // V3新增：初始化已存在实例的费用记录
+  const initializeExistingInstances = (instances: LinodeInstance[]) => {
+    try {
+      console.log("🚀 初始化已存在实例的费用记录...");
+      
+      instances.forEach((instance) => {
+        if (instance.status === "running") {
+          console.log(`📊 为运行中实例创建费用记录: ${instance.label} (${instance.type})`);
+          
+          billingService.logResourceStateChange({
+            resourceType: "instance",
+            resourceId: instance.id.toString(),
+            action: "start",
+            state: "running",
+            metadata: {
+              instanceType: instance.type,
+              specs: instance.specs,
+              region: instance.region,
+            },
+          });
+        }
+      });
+      
+      console.log(`✅ 完成初始化 ${instances.filter(i => i.status === "running").length} 个运行中实例的费用记录`);
+      
+    } catch (error) {
+      console.warn("❌ 初始化已存在实例费用记录失败:", error);
+    }
   };
 
   return {

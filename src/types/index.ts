@@ -119,14 +119,14 @@ export interface MonitoringStats {
 // 费用预估相关类型
 export interface ResourceStateLog {
   id: string;
-  resourceType: 'instance' | 'object-storage';
+  resourceType: "instance" | "object-storage";
   resourceId: string;
-  action: 'start' | 'stop' | 'create' | 'delete';
+  action: "start" | "stop" | "create" | "delete";
   timestamp: Date;
-  state: 'running' | 'offline' | 'active';
+  state: "running" | "offline" | "active";
   metadata: {
     instanceType?: string;
-    specs?: LinodeInstance['specs'];
+    specs?: LinodeInstance["specs"];
     bucketSize?: number;
     region?: string;
   };
@@ -135,7 +135,7 @@ export interface ResourceStateLog {
 export interface BillingPeriod {
   id: string;
   resourceId: string;
-  resourceType: 'instance' | 'object-storage';
+  resourceType: "instance" | "object-storage";
   resourceLabel: string;
   instanceType?: string;
   startTime: Date;
@@ -154,7 +154,7 @@ export interface DailyCost {
   details: Array<{
     resourceId: string;
     resourceLabel: string;
-    resourceType: 'instance' | 'object-storage';
+    resourceType: "instance" | "object-storage";
     cost: number;
     hours: number;
   }>;
@@ -171,13 +171,70 @@ export interface CostSummary {
 }
 
 export interface PricingConfig {
-  instances: Record<string, {
-    hourly: number;
-    monthly: number;
-  }>;
+  instances: Record<
+    string,
+    {
+      hourly: number;
+      monthly: number;
+    }
+  >;
   objectStorage: {
     baseFee: number;
     transferCost: number;
   };
   lastUpdated: string;
+}
+
+// Linode Events API相关类型
+export interface LinodeEventEntity {
+  label: string | null;
+  id: number | null;
+  type: string;
+  url: string;
+}
+
+export interface LinodeEvent {
+  id: number;
+  created: string; // ISO 8601格式
+  seen: boolean;
+  read: boolean;
+  percent_complete: number | null;
+  time_remaining: number | null;
+  rate: string | null;
+  duration: number | null; // 秒数
+  action: string; // linode_boot, linode_shutdown, linode_reboot等
+  username: string | null;
+  entity: LinodeEventEntity;
+  status: "started" | "finished" | "failed" | "notification";
+  secondary_entity: LinodeEventEntity | null;
+  message: string;
+}
+
+export interface LinodeEventsResponse {
+  data: LinodeEvent[];
+  page: number;
+  pages: number;
+  results: number;
+}
+
+// 实例运行会话 - 基于事件日志构建的时间段
+export interface InstanceSession {
+  instanceId: number;
+  instanceLabel: string;
+  instanceType: string;
+  startEvent: LinodeEvent; // boot事件
+  endEvent?: LinodeEvent; // shutdown事件，null表示仍在运行
+  startTime: Date;
+  endTime?: Date; // null表示仍在运行
+  duration: number; // 小时数，实时计算
+  isRunning: boolean;
+  cost: number; // 基于实际运行时长计算
+}
+
+// 基于事件的费用计算缓存
+export interface EventBasedBillingCache {
+  lastUpdateTime: Date;
+  instanceSessions: Map<number, InstanceSession[]>; // 按实例ID分组的会话列表
+  eventCache: Map<number, LinodeEvent[]>; // 按事件ID缓存的事件
+  costCache: Map<string, DailyCost>; // 按日期缓存的费用数据
 }

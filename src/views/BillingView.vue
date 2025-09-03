@@ -3,7 +3,7 @@
     <!-- 页面头部 -->
     <header class="billing-header">
       <div class="header-content">
-        <button @click="goBack" class="back-btn">
+        <button class="back-btn" @click="goBack">
           <span class="back-icon">←</span>
           返回
         </button>
@@ -12,9 +12,7 @@
           <p class="subtitle">{{ currentMonthText }}</p>
         </div>
         <div class="header-actions">
-          <button @click="exportData" class="export-btn">
-            📊 导出
-          </button>
+          <button class="export-btn" @click="exportData">📊 导出</button>
         </div>
       </div>
     </header>
@@ -28,7 +26,7 @@
             <span class="card-title">本月累计</span>
           </div>
           <div class="card-value">
-            ${{ summary?.monthToDateCost?.toFixed(2) || '0.00' }}
+            ${{ summary?.monthToDateCost?.toFixed(2) || "0.00" }}
           </div>
           <div class="card-trend" :class="{ positive: projectedIncrease > 0 }">
             {{ projectedTrendText }}
@@ -41,11 +39,9 @@
             <span class="card-title">预估月底</span>
           </div>
           <div class="card-value projected">
-            ${{ summary?.projectedMonthlyCost?.toFixed(2) || '0.00' }}
+            ${{ summary?.projectedMonthlyCost?.toFixed(2) || "0.00" }}
           </div>
-          <div class="card-meta">
-            还剩 {{ summary?.remainingDays || 0 }} 天
-          </div>
+          <div class="card-meta">还剩 {{ summary?.remainingDays || 0 }} 天</div>
         </div>
 
         <div class="overview-card">
@@ -54,11 +50,9 @@
             <span class="card-title">日均费用</span>
           </div>
           <div class="card-value">
-            ${{ summary?.dailyAverage?.toFixed(2) || '0.00' }}
+            ${{ summary?.dailyAverage?.toFixed(2) || "0.00" }}
           </div>
-          <div class="card-meta">
-            基于 {{ daysPassed }} 天数据
-          </div>
+          <div class="card-meta">基于 {{ daysPassed }} 天数据</div>
         </div>
       </div>
     </section>
@@ -72,16 +66,18 @@
             <span class="breakdown-icon">🖥️</span>
             <div class="breakdown-info">
               <h3>实例费用</h3>
-              <p class="breakdown-desc">{{ runningInstancesCount }} 个实例运行</p>
+              <p class="breakdown-desc">
+                {{ runningInstancesCount }} 个实例运行
+              </p>
             </div>
           </div>
           <div class="breakdown-value">
-            ${{ summary?.instancesCost?.toFixed(2) || '0.00' }}
+            ${{ summary?.instancesCost?.toFixed(2) || "0.00" }}
           </div>
           <div class="breakdown-progress">
             <div class="progress-bar">
-              <div 
-                class="progress-fill instances-progress" 
+              <div
+                class="progress-fill instances-progress"
                 :style="{ width: instancesPercentage + '%' }"
               ></div>
             </div>
@@ -98,12 +94,12 @@
             </div>
           </div>
           <div class="breakdown-value">
-            ${{ summary?.storageCost?.toFixed(2) || '0.00' }}
+            ${{ summary?.storageCost?.toFixed(2) || "0.00" }}
           </div>
           <div class="breakdown-progress">
             <div class="progress-bar">
-              <div 
-                class="progress-fill storage-progress" 
+              <div
+                class="progress-fill storage-progress"
                 :style="{ width: storagePercentage + '%' }"
               ></div>
             </div>
@@ -117,7 +113,7 @@
     <section class="daily-chart">
       <h2>📈 每日费用趋势</h2>
       <div class="chart-container">
-        <DailyCostChart 
+        <DailyCostChart
           ref="dailyChart"
           :year="currentYear"
           :month="currentMonth"
@@ -130,44 +126,62 @@
     <section class="cost-details">
       <h2>📝 费用明细</h2>
       <div class="details-controls">
-        <select v-model="selectedDay" @change="loadDayDetails" class="day-selector">
+        <select
+          v-model="selectedDay"
+          class="day-selector"
+          @change="loadDayDetails"
+        >
           <option value="">选择日期</option>
-          <option v-for="day in availableDays" :key="day.date" :value="day.date">
+          <option
+            v-for="day in availableDays"
+            :key="day.date"
+            :value="day.date"
+          >
             {{ formatDate(day.date) }} - ${{ day.totalCost.toFixed(2) }}
           </option>
         </select>
-        <button @click="refreshDetails" class="refresh-btn">🔄 刷新</button>
+        <button class="refresh-btn" @click="refreshDetails">🔄 刷新</button>
       </div>
 
       <div v-if="selectedDayDetails" class="day-details">
         <h3>{{ formatDate(selectedDay) }} 详细费用</h3>
         <div class="details-summary">
-          <span class="details-total">总费用: ${{ selectedDayDetails.totalCost.toFixed(2) }}</span>
+          <span class="details-total"
+            >总费用: ${{ selectedDayDetails.totalCost.toFixed(2) }}</span
+          >
           <span class="details-breakdown">
-            实例: ${{ selectedDayDetails.instanceCost.toFixed(2) }} | 
-            存储: ${{ selectedDayDetails.storageCost.toFixed(2) }}
+            实例: ${{ selectedDayDetails.instanceCost.toFixed(2) }} | 存储: ${{
+              selectedDayDetails.storageCost.toFixed(2)
+            }}
           </span>
         </div>
-        
-        <div v-if="selectedDayDetails.details.length > 0" class="resource-details">
+
+        <div
+          v-if="selectedDayDetails.details.length > 0"
+          class="resource-details"
+        >
           <h4>资源明细</h4>
           <div class="details-list">
-            <div 
-              v-for="detail in selectedDayDetails.details" 
+            <div
+              v-for="detail in selectedDayDetails.details"
               :key="detail.resourceId"
               class="detail-item"
             >
               <div class="detail-info">
                 <span class="detail-icon">
-                  {{ detail.resourceType === 'instance' ? '🖥️' : '💾' }}
+                  {{ detail.resourceType === "instance" ? "🖥️" : "💾" }}
                 </span>
                 <div class="detail-content">
                   <span class="detail-name">{{ detail.resourceLabel }}</span>
-                  <span class="detail-type">{{ detail.resourceType === 'instance' ? '实例' : '存储' }}</span>
+                  <span class="detail-type">{{
+                    detail.resourceType === "instance" ? "实例" : "存储"
+                  }}</span>
                 </div>
               </div>
               <div class="detail-usage">
-                <span class="detail-hours">{{ detail.hours.toFixed(1) }}小时</span>
+                <span class="detail-hours"
+                  >{{ detail.hours.toFixed(1) }}小时</span
+                >
                 <span class="detail-cost">${{ detail.cost.toFixed(2) }}</span>
               </div>
             </div>
@@ -192,185 +206,201 @@
     <div v-if="error" class="error-banner">
       <span class="error-icon">⚠️</span>
       <span class="error-message">{{ error }}</span>
-      <button @click="loadData" class="error-retry">重试</button>
+      <button class="error-retry" @click="loadData">重试</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useInstanceStore } from '@/stores/instances'
-import { billingService } from '@/services/billingService'
-import type { CostSummary, DailyCost } from '@/types'
-import DailyCostChart from '@/components/DailyCostChart.vue'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useInstanceStore } from "@/stores/instances";
+import { eventBasedBillingService } from "@/services/eventBasedBillingService";
+import type { CostSummary, DailyCost } from "@/types";
+import DailyCostChart from "@/components/DailyCostChart.vue";
 
-const router = useRouter()
-const instanceStore = useInstanceStore()
+const router = useRouter();
+const instanceStore = useInstanceStore();
 
 // 响应式数据
-const isLoading = ref(true)
-const error = ref<string | null>(null)
-const summary = ref<CostSummary | null>(null)
-const dailyCosts = ref<DailyCost[]>([])
-const selectedDay = ref<string>('')
-const selectedDayDetails = ref<DailyCost | null>(null)
+const isLoading = ref(true);
+const error = ref<string | null>(null);
+const summary = ref<CostSummary | null>(null);
+const dailyCosts = ref<DailyCost[]>([]);
+const selectedDay = ref<string>("");
+const selectedDayDetails = ref<DailyCost | null>(null);
 
 // 当前日期信息
-const currentDate = new Date()
-const currentYear = currentDate.getFullYear().toString()
-const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0')
+const currentDate = new Date();
+const currentYear = currentDate.getFullYear().toString();
+const currentMonth = String(currentDate.getMonth() + 1).padStart(2, "0");
 
 // 计算属性
 const currentMonthText = computed(() => {
   const monthNames = [
-    '一月', '二月', '三月', '四月', '五月', '六月',
-    '七月', '八月', '九月', '十月', '十一月', '十二月'
-  ]
-  const monthIndex = parseInt(currentMonth) - 1
-  return `${currentYear}年${monthNames[monthIndex]}`
-})
+    "一月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "十二月",
+  ];
+  const monthIndex = parseInt(currentMonth) - 1;
+  return `${currentYear}年${monthNames[monthIndex]}`;
+});
 
 const daysPassed = computed(() => {
-  const today = currentDate.getDate()
-  return today
-})
+  const today = currentDate.getDate();
+  return today;
+});
 
 const projectedIncrease = computed(() => {
-  if (!summary.value) return 0
-  return summary.value.projectedMonthlyCost - summary.value.monthToDateCost
-})
+  if (!summary.value) return 0;
+  return summary.value.projectedMonthlyCost - summary.value.monthToDateCost;
+});
 
 const projectedTrendText = computed(() => {
   if (projectedIncrease.value > 0) {
-    return `+$${projectedIncrease.value.toFixed(2)} 预计增长`
+    return `+$${projectedIncrease.value.toFixed(2)} 预计增长`;
   }
-  return '基于当前趋势'
-})
+  return "基于当前趋势";
+});
 
 const runningInstancesCount = computed(() => {
-  return instanceStore.runningInstances.length
-})
+  return instanceStore.runningInstances.length;
+});
 
 const instancesPercentage = computed(() => {
-  if (!summary.value || summary.value.monthToDateCost === 0) return 0
-  return Math.round((summary.value.instancesCost / summary.value.monthToDateCost) * 100)
-})
+  if (!summary.value || summary.value.monthToDateCost === 0) return 0;
+  return Math.round(
+    (summary.value.instancesCost / summary.value.monthToDateCost) * 100,
+  );
+});
 
 const storagePercentage = computed(() => {
-  if (!summary.value || summary.value.monthToDateCost === 0) return 0
-  return Math.round((summary.value.storageCost / summary.value.monthToDateCost) * 100)
-})
+  if (!summary.value || summary.value.monthToDateCost === 0) return 0;
+  return Math.round(
+    (summary.value.storageCost / summary.value.monthToDateCost) * 100,
+  );
+});
 
 const availableDays = computed(() => {
   return dailyCosts.value
-    .filter(day => day.totalCost > 0)
-    .sort((a, b) => b.date.localeCompare(a.date))
-})
+    .filter((day) => day.totalCost > 0)
+    .sort((a, b) => b.date.localeCompare(a.date));
+});
 
 // 方法
 const goBack = () => {
-  router.go(-1)
-}
+  router.go(-1);
+};
 
 const loadData = async () => {
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
 
   try {
-    // 并行加载汇总数据和每日费用
+    // 并行加载汇总数据和每日费用（基于事件数据）
     const [summaryData, dailyData] = await Promise.all([
-      billingService.getMonthlySummary(currentYear, currentMonth),
-      billingService.getDailyCosts(currentYear, currentMonth)
-    ])
+      eventBasedBillingService.getMonthlySummary(currentYear, currentMonth),
+      eventBasedBillingService.getDailyCosts(currentYear, currentMonth),
+    ]);
 
-    summary.value = summaryData
-    dailyCosts.value = dailyData
+    summary.value = summaryData;
+    dailyCosts.value = dailyData;
 
-    console.log('费用数据加载完成:', { 
-      summary: summaryData, 
-      dailyCount: dailyData.length 
-    })
+    console.log("费用数据加载完成:", {
+      summary: summaryData,
+      dailyCount: dailyData.length,
+    });
   } catch (err: any) {
-    error.value = err.message || '加载费用数据失败'
-    console.error('费用数据加载错误:', err)
+    error.value = err.message || "加载费用数据失败";
+    console.error("费用数据加载错误:", err);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const loadDayDetails = () => {
   if (!selectedDay.value) {
-    selectedDayDetails.value = null
-    return
+    selectedDayDetails.value = null;
+    return;
   }
 
-  const dayData = dailyCosts.value.find(day => day.date === selectedDay.value)
-  selectedDayDetails.value = dayData || null
-}
+  const dayData = dailyCosts.value.find(
+    (day) => day.date === selectedDay.value,
+  );
+  selectedDayDetails.value = dayData || null;
+};
 
 const refreshDetails = () => {
-  loadData()
-}
+  loadData();
+};
 
 const exportData = () => {
-  if (!summary.value || !dailyCosts.value) return
+  if (!summary.value || !dailyCosts.value) return;
 
   const exportData = {
     summary: summary.value,
     dailyCosts: dailyCosts.value,
     exportDate: new Date().toISOString(),
-    period: `${currentYear}-${currentMonth}`
-  }
+    period: `${currentYear}-${currentMonth}`,
+  };
 
-  const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
-    type: 'application/json' 
-  })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `linode-billing-${currentYear}-${currentMonth}.json`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `linode-billing-${currentYear}-${currentMonth}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 const formatDate = (dateStr: string) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr + 'T00:00:00')
-  return date.toLocaleDateString('zh-CN', { 
-    month: 'short', 
-    day: 'numeric',
-    weekday: 'short' 
-  })
-}
+  if (!dateStr) return "";
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("zh-CN", {
+    month: "short",
+    day: "numeric",
+    weekday: "short",
+  });
+};
 
 const handleChartError = (errorMessage: string) => {
-  console.warn('图表错误:', errorMessage)
-}
+  console.warn("图表错误:", errorMessage);
+};
 
 // 生命周期
 onMounted(() => {
-  loadData()
+  loadData();
   // 确保实例数据已加载
   if (instanceStore.instances.length === 0) {
-    instanceStore.loadInstances()
+    instanceStore.loadInstances();
   }
-})
+});
 </script>
 
 <style scoped>
 .billing-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding-bottom: 2rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%);
+  padding-bottom: 1.5rem;
 }
 
 .billing-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -380,7 +410,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -389,200 +419,222 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
+  font-size: 0.85rem;
+  transition: all 0.2s;
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
 }
 
 .back-icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .header-title h1 {
-  color: white;
+  color: #f8fafc;
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(248, 250, 252, 0.7);
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .export-btn {
-  background: rgba(255, 255, 255, 0.9);
-  color: #4c51bf;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 0.85rem;
   transition: all 0.2s;
 }
 
 .export-btn:hover {
-  background: white;
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
   transform: translateY(-1px);
 }
 
 /* 费用概览卡片 */
 .cost-overview {
-  padding: 1.5rem;
+  padding: 1rem 1rem 0;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .overview-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
 }
 
 .overview-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.2s ease;
+  color: #f8fafc;
 }
 
 .overview-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 .overview-card.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
 }
 
 .card-icon {
-  font-size: 1.5rem;
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.25rem;
   opacity: 0.9;
 }
 
-.card-value {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.card-value.projected {
-  color: #059669;
-}
-
-.card-trend {
+.card-title {
   font-size: 0.9rem;
+  font-weight: 500;
   opacity: 0.8;
 }
 
+.card-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  line-height: 1;
+}
+
+.card-value.projected {
+  color: #10b981;
+}
+
+.card-trend {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
 .card-trend.positive {
-  color: #059669;
-  font-weight: 600;
+  color: #10b981;
+  font-weight: 500;
 }
 
 .card-meta {
-  font-size: 0.9rem;
-  opacity: 0.7;
+  font-size: 0.8rem;
+  opacity: 0.6;
 }
 
 /* 费用分解 */
 .cost-breakdown {
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .cost-breakdown h2 {
-  color: white;
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .breakdown-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 
 .breakdown-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.2s ease;
+}
+
+.breakdown-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 .breakdown-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
 }
 
 .breakdown-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  opacity: 0.9;
 }
 
 .breakdown-info h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-  color: #1f2937;
+  margin: 0 0 0.2rem 0;
+  font-size: 1rem;
+  color: #f8fafc;
+  font-weight: 600;
 }
 
 .breakdown-desc {
   margin: 0;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 0.8rem;
 }
 
 .breakdown-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1rem;
+  color: #f8fafc;
+  margin-bottom: 0.8rem;
+  line-height: 1;
 }
 
 .breakdown-progress {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .progress-bar {
   flex: 1;
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
+  height: 6px;
+  background: rgba(71, 85, 105, 0.5);
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.5s ease;
 }
 
@@ -595,104 +647,121 @@ onMounted(() => {
 }
 
 .progress-text {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(148, 163, 184, 0.9);
+  font-size: 0.8rem;
 }
 
 /* 图表部分 */
 .daily-chart {
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .daily-chart h2 {
-  color: white;
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .chart-container {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 /* 费用详细列表 */
 .cost-details {
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .cost-details h2 {
-  color: white;
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .details-controls {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
   align-items: center;
 }
 
 .day-selector {
   flex: 1;
   max-width: 300px;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  font-size: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 0.4rem;
+  background: rgba(30, 41, 59, 0.8);
+  color: #f8fafc;
+  font-size: 0.85rem;
+  backdrop-filter: blur(12px);
+}
+
+.day-selector:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .refresh-btn {
-  background: rgba(255, 255, 255, 0.9);
-  color: #4c51bf;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.4rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   transition: all 0.2s;
 }
 
 .refresh-btn:hover {
-  background: white;
-  transform: scale(1.05);
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(168, 85, 247, 0.5);
+  transform: translateY(-1px);
 }
 
 .day-details {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .day-details h3 {
-  margin: 0 0 1rem 0;
-  color: #1f2937;
-  font-size: 1.2rem;
+  margin: 0 0 0.8rem 0;
+  color: #f8fafc;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .details-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  background: rgba(71, 85, 105, 0.3);
+  border-radius: 0.4rem;
 }
 
 .details-total {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f8fafc;
 }
 
 .details-breakdown {
@@ -809,8 +878,12 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-banner {
@@ -860,33 +933,34 @@ onMounted(() => {
     flex-wrap: wrap;
     gap: 1rem;
   }
-  
-  .overview-cards, .breakdown-cards {
+
+  .overview-cards,
+  .breakdown-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .details-controls {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .day-selector {
     max-width: none;
   }
-  
+
   .details-summary {
     flex-direction: column;
     gap: 0.5rem;
     align-items: stretch;
     text-align: center;
   }
-  
+
   .detail-item {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .detail-usage {
     align-items: center;
   }
@@ -896,19 +970,24 @@ onMounted(() => {
   .billing-view {
     padding-bottom: 1rem;
   }
-  
-  .cost-overview, .cost-breakdown, .daily-chart, .cost-details {
+
+  .cost-overview,
+  .cost-breakdown,
+  .daily-chart,
+  .cost-details {
     padding: 1rem;
   }
-  
-  .overview-card, .breakdown-card, .day-details {
+
+  .overview-card,
+  .breakdown-card,
+  .day-details {
     padding: 1rem;
   }
-  
+
   .card-value {
     font-size: 1.75rem;
   }
-  
+
   .breakdown-value {
     font-size: 1.5rem;
   }

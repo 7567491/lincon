@@ -13,9 +13,9 @@
         </div>
       </div>
     </div>
-    
+
     <div class="chart-wrapper" :class="{ loading: isLoading }">
-      <canvas ref="chartCanvas" :id="chartId"></canvas>
+      <canvas :id="chartId" ref="chartCanvas"></canvas>
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner"></div>
         <p>加载费用数据中...</p>
@@ -23,14 +23,17 @@
       <div v-if="error" class="error-overlay">
         <span class="error-icon">⚠️</span>
         <p>{{ error }}</p>
-        <button @click="loadData" class="retry-btn">重试</button>
+        <button class="retry-btn" @click="loadData">重试</button>
       </div>
-      <div v-if="!isLoading && !error && chartData.length === 0" class="empty-overlay">
+      <div
+        v-if="!isLoading && !error && chartData.length === 0"
+        class="empty-overlay"
+      >
         <span class="empty-icon">📭</span>
         <p>暂无费用数据</p>
       </div>
     </div>
-    
+
     <div class="chart-summary">
       <div class="summary-item">
         <span class="summary-label">本月总计:</span>
@@ -42,14 +45,16 @@
       </div>
       <div class="summary-item">
         <span class="summary-label">平均每日:</span>
-        <span class="summary-value average">${{ averageDailyCost.toFixed(2) }}</span>
+        <span class="summary-value average"
+          >${{ averageDailyCost.toFixed(2) }}</span
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -58,253 +63,269 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js'
-import type { ChartOptions, ChartData } from 'chart.js'
-import { billingService } from '@/services/billingService'
-import type { DailyCost } from '@/types'
+} from "chart.js";
+import type { ChartOptions, ChartData } from "chart.js";
+import { eventBasedBillingService } from "@/services/eventBasedBillingService";
+import type { DailyCost } from "@/types";
 
 // 注册 Chart.js 组件
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+);
 
 interface Props {
-  year: string
-  month: string
+  year: string;
+  month: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   year: new Date().getFullYear().toString(),
-  month: String(new Date().getMonth() + 1).padStart(2, '0')
-})
+  month: String(new Date().getMonth() + 1).padStart(2, "0"),
+});
 
 const emit = defineEmits<{
-  error: [message: string]
-}>()
+  error: [message: string];
+}>();
 
 // 响应式数据
-const chartCanvas = ref<HTMLCanvasElement>()
-const chart = ref<ChartJS | null>(null)
-const isLoading = ref(true)
-const error = ref<string | null>(null)
-const chartData = ref<DailyCost[]>([])
+const chartCanvas = ref<HTMLCanvasElement>();
+const chart = ref<ChartJS | null>(null);
+const isLoading = ref(true);
+const error = ref<string | null>(null);
+const chartData = ref<DailyCost[]>([]);
 
 // 生成唯一的 chart ID
-const chartId = `daily-cost-chart-${Math.random().toString(36).substr(2, 9)}`
+const chartId = `daily-cost-chart-${Math.random().toString(36).substr(2, 9)}`;
 
 // 计算属性
 const monthTotal = computed(() => {
-  return chartData.value.reduce((sum, day) => sum + day.totalCost, 0)
-})
+  return chartData.value.reduce((sum, day) => sum + day.totalCost, 0);
+});
 
 const peakDailyCost = computed(() => {
-  return Math.max(...chartData.value.map(day => day.totalCost), 0)
-})
+  return Math.max(...chartData.value.map((day) => day.totalCost), 0);
+});
 
 const averageDailyCost = computed(() => {
-  const nonZeroDays = chartData.value.filter(day => day.totalCost > 0)
-  if (nonZeroDays.length === 0) return 0
-  return monthTotal.value / nonZeroDays.length
-})
+  const nonZeroDays = chartData.value.filter((day) => day.totalCost > 0);
+  if (nonZeroDays.length === 0) return 0;
+  return monthTotal.value / nonZeroDays.length;
+});
 
-const processedChartData = computed((): ChartData<'bar'> => {
-  const labels = chartData.value.map(day => {
-    const date = new Date(day.date + 'T00:00:00')
-    return date.getDate().toString()
-  })
+const processedChartData = computed((): ChartData<"bar"> => {
+  const labels = chartData.value.map((day) => {
+    const date = new Date(day.date + "T00:00:00");
+    return date.getDate().toString();
+  });
 
-  const instanceCosts = chartData.value.map(day => day.instanceCost)
-  const storageCosts = chartData.value.map(day => day.storageCost)
+  const instanceCosts = chartData.value.map((day) => day.instanceCost);
+  const storageCosts = chartData.value.map((day) => day.storageCost);
 
   return {
     labels,
     datasets: [
       {
-        label: '实例费用',
+        label: "实例费用",
         data: instanceCosts,
-        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: "rgba(59, 130, 246, 0.8)",
+        borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 1,
         borderRadius: 4,
         borderSkipped: false,
       },
       {
-        label: '存储费用', 
+        label: "存储费用",
         data: storageCosts,
-        backgroundColor: 'rgba(16, 185, 129, 0.8)',
-        borderColor: 'rgba(16, 185, 129, 1)',
+        backgroundColor: "rgba(16, 185, 129, 0.8)",
+        borderColor: "rgba(16, 185, 129, 1)",
         borderWidth: 1,
         borderRadius: 4,
         borderSkipped: false,
-      }
-    ]
-  }
-})
+      },
+    ],
+  };
+});
 
-const chartOptions = computed((): ChartOptions<'bar'> => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  interaction: {
-    mode: 'index',
-    intersect: false,
-  },
-  plugins: {
-    title: {
-      display: false
+const chartOptions = computed(
+  (): ChartOptions<"bar"> => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: "index",
+      intersect: false,
     },
-    legend: {
-      display: false // 使用自定义图例
-    },
-    tooltip: {
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-      borderWidth: 1,
-      cornerRadius: 8,
-      displayColors: true,
-      callbacks: {
-        title: (context) => {
-          const dayIndex = context[0].dataIndex
-          const day = chartData.value[dayIndex]
-          if (day) {
-            const date = new Date(day.date + 'T00:00:00')
-            return date.toLocaleDateString('zh-CN', { 
-              month: 'short', 
-              day: 'numeric',
-              weekday: 'short'
-            })
-          }
-          return `${props.month}月${context[0].label}日`
-        },
-        afterBody: (context) => {
-          const dayIndex = context[0].dataIndex
-          const day = chartData.value[dayIndex]
-          if (day) {
-            const total = day.totalCost
-            return [`总费用: $${total.toFixed(2)}`]
-          }
-          return []
-        }
-      }
-    }
-  },
-  scales: {
-    x: {
-      stacked: true,
-      grid: {
-        display: false
-      },
-      ticks: {
-        color: '#6b7280',
-        font: {
-          size: 12
-        }
-      },
+    plugins: {
       title: {
-        display: true,
-        text: `${props.year}年${props.month}月`,
-        color: '#374151',
-        font: {
-          size: 14,
-          weight: 600
-        }
-      }
-    },
-    y: {
-      stacked: true,
-      beginAtZero: true,
-      grid: {
-        color: 'rgba(0, 0, 0, 0.1)'
+        display: false,
       },
-      ticks: {
-        color: '#6b7280',
-        font: {
-          size: 12
+      legend: {
+        display: false, // 使用自定义图例
+      },
+      tooltip: {
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+        borderColor: "rgba(255, 255, 255, 0.2)",
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          title: (context) => {
+            const dayIndex = context[0].dataIndex;
+            const day = chartData.value[dayIndex];
+            if (day) {
+              const date = new Date(day.date + "T00:00:00");
+              return date.toLocaleDateString("zh-CN", {
+                month: "short",
+                day: "numeric",
+                weekday: "short",
+              });
+            }
+            return `${props.month}月${context[0].label}日`;
+          },
+          afterBody: (context) => {
+            const dayIndex = context[0].dataIndex;
+            const day = chartData.value[dayIndex];
+            if (day) {
+              const total = day.totalCost;
+              return [`总费用: $${total.toFixed(2)}`];
+            }
+            return [];
+          },
         },
-        callback: function(value) {
-          return '$' + Number(value).toFixed(2)
-        }
       },
-      title: {
-        display: true,
-        text: '费用 (USD)',
-        color: '#374151',
-        font: {
-          size: 14,
-          weight: 600
-        }
-      }
-    }
-  },
-  animation: {
-    duration: 750,
-    easing: 'easeInOutQuart'
-  }
-}))
+    },
+    scales: {
+      x: {
+        stacked: true,
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: "#6b7280",
+          font: {
+            size: 12,
+          },
+        },
+        title: {
+          display: true,
+          text: `${props.year}年${props.month}月`,
+          color: "#374151",
+          font: {
+            size: 14,
+            weight: 600,
+          },
+        },
+      },
+      y: {
+        stacked: true,
+        beginAtZero: true,
+        grid: {
+          color: "rgba(0, 0, 0, 0.1)",
+        },
+        ticks: {
+          color: "#6b7280",
+          font: {
+            size: 12,
+          },
+          callback: function (value) {
+            return "$" + Number(value).toFixed(2);
+          },
+        },
+        title: {
+          display: true,
+          text: "费用 (USD)",
+          color: "#374151",
+          font: {
+            size: 14,
+            weight: 600,
+          },
+        },
+      },
+    },
+    animation: {
+      duration: 750,
+      easing: "easeInOutQuart",
+    },
+  }),
+);
 
 // 方法
 const loadData = async () => {
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
 
   try {
-    const dailyCosts = await billingService.getDailyCosts(props.year, props.month)
-    chartData.value = dailyCosts
-    
-    await nextTick()
-    createChart()
-    
-    console.log(`每日费用数据加载完成: ${dailyCosts.length} 天`)
+    const dailyCosts = await eventBasedBillingService.getDailyCosts(
+      props.year,
+      props.month,
+    );
+    chartData.value = dailyCosts;
+
+    await nextTick();
+    createChart();
+
+    console.log(`每日费用数据加载完成: ${dailyCosts.length} 天`);
   } catch (err: any) {
-    const errorMessage = err.message || '获取费用数据失败'
-    error.value = errorMessage
-    emit('error', errorMessage)
-    console.error('每日费用数据加载错误:', err)
+    const errorMessage = err.message || "获取费用数据失败";
+    error.value = errorMessage;
+    emit("error", errorMessage);
+    console.error("每日费用数据加载错误:", err);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const createChart = () => {
-  if (!chartCanvas.value) return
-  
+  if (!chartCanvas.value) return;
+
   // 销毁现有图表
   if (chart.value) {
-    chart.value.destroy()
+    chart.value.destroy();
   }
 
   // 创建新图表
   chart.value = new ChartJS(chartCanvas.value, {
-    type: 'bar',
+    type: "bar",
     data: processedChartData.value,
-    options: chartOptions.value
-  })
-}
+    options: chartOptions.value,
+  });
+};
 
 const refresh = () => {
-  loadData()
-}
+  loadData();
+};
 
 // 监听属性变化
-watch([() => props.year, () => props.month], () => {
-  loadData()
-}, { deep: true })
+watch(
+  [() => props.year, () => props.month],
+  () => {
+    loadData();
+  },
+  { deep: true },
+);
 
 // 生命周期
 onMounted(() => {
-  loadData()
-})
+  loadData();
+});
 
 onUnmounted(() => {
   if (chart.value) {
-    chart.value.destroy()
+    chart.value.destroy();
   }
-})
+});
 
 // 暴露方法给父组件
 defineExpose({
   refresh,
-  loadData
-})
+  loadData,
+});
 </script>
 
 <style scoped>
@@ -316,35 +337,35 @@ defineExpose({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .chart-header h3 {
   margin: 0;
-  color: #1f2937;
-  font-size: 1.25rem;
+  color: #f8fafc;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
 .chart-legend {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #4b5563;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.8);
 }
 
 .legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
 }
 
 .legend-color.instances {
@@ -357,8 +378,8 @@ defineExpose({
 
 .chart-wrapper {
   position: relative;
-  height: 400px;
-  margin-bottom: 1.5rem;
+  height: 320px;
+  margin-bottom: 1rem;
 }
 
 .chart-wrapper.loading {
@@ -377,39 +398,43 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(248, 250, 252, 0.9);
-  backdrop-filter: blur(4px);
+  background: rgba(30, 41, 59, 0.9);
+  backdrop-filter: blur(8px);
   border-radius: 0.5rem;
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: 3px solid rgba(59, 130, 246, 0.3);
   border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-overlay p,
 .error-overlay p,
 .empty-overlay p {
   margin: 0;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 0.85rem;
   text-align: center;
 }
 
 .error-icon,
 .empty-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.8rem;
+  margin-bottom: 0.6rem;
 }
 
 .error-icon {
@@ -417,18 +442,18 @@ defineExpose({
 }
 
 .empty-icon {
-  color: #9ca3af;
+  color: #94a3b8;
 }
 
 .retry-btn {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
+  margin-top: 0.8rem;
+  padding: 0.4rem 0.8rem;
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.3rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   transition: background 0.2s;
 }
 
@@ -438,42 +463,42 @@ defineExpose({
 
 .chart-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.8rem;
+  padding: 0.8rem;
+  background: rgba(71, 85, 105, 0.3);
+  border-radius: 0.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .summary-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   text-align: center;
 }
 
 .summary-label {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.7);
   font-weight: 500;
 }
 
 .summary-value {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .summary-value.total {
-  color: #1f2937;
+  color: #f8fafc;
 }
 
 .summary-value.peak {
-  color: #dc2626;
+  color: #ef4444;
 }
 
 .summary-value.average {
-  color: #059669;
+  color: #10b981;
 }
 
 /* 响应式设计 */
@@ -484,16 +509,16 @@ defineExpose({
     align-items: stretch;
     text-align: center;
   }
-  
+
   .chart-legend {
     justify-content: center;
     flex-wrap: wrap;
   }
-  
+
   .chart-wrapper {
     height: 300px;
   }
-  
+
   .chart-summary {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 0.75rem;
@@ -505,23 +530,23 @@ defineExpose({
   .chart-header h3 {
     font-size: 1.1rem;
   }
-  
+
   .legend-item {
     font-size: 0.8rem;
   }
-  
+
   .chart-wrapper {
     height: 250px;
   }
-  
+
   .summary-item {
     gap: 0.125rem;
   }
-  
+
   .summary-label {
     font-size: 0.8rem;
   }
-  
+
   .summary-value {
     font-size: 1rem;
   }
