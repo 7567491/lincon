@@ -1,117 +1,117 @@
 export interface LinodeInstance {
-  id: number
-  label: string
-  status: string
-  region: string
-  type: string
-  ipv4: string[]
-  ipv6?: string
+  id: number;
+  label: string;
+  status: string;
+  region: string;
+  type: string;
+  ipv4: string[];
+  ipv6?: string;
   specs: {
-    disk: number
-    memory: number
-    vcpus: number
-    transfer: number
-  }
-  image?: string
-  hypervisor?: string
+    disk: number;
+    memory: number;
+    vcpus: number;
+    transfer: number;
+  };
+  image?: string;
+  hypervisor?: string;
   backups?: {
-    enabled: boolean
-    available: boolean
+    enabled: boolean;
+    available: boolean;
     schedule?: {
-      day: string
-      window: string
-    }
-  }
+      day: string;
+      window: string;
+    };
+  };
   type_info?: {
-    id: string
-    label: string
+    id: string;
+    label: string;
     price: {
-      hourly: number
-      monthly: number
-    }
-  }
-  created?: string
-  updated?: string
+      hourly: number;
+      monthly: number;
+    };
+  };
+  created?: string;
+  updated?: string;
 }
 
 export interface APIError {
-  field?: string
-  reason: string
+  field?: string;
+  reason: string;
 }
 
 export interface APIResponse<T> {
-  data: T
-  page: number
-  pages: number
-  results: number
+  data: T;
+  page: number;
+  pages: number;
+  results: number;
 }
 
 // Object Storage相关类型
 export interface ObjectStorageBucket {
-  cluster: string
-  label: string
-  created: string
-  hostname: string
-  objects: number
-  size: number
+  cluster: string;
+  label: string;
+  created: string;
+  hostname: string;
+  objects: number;
+  size: number;
 }
 
 export interface ObjectStorageCluster {
-  id: string
-  domain: string
-  status: string
-  region: string
-  static_site_domain: string
+  id: string;
+  domain: string;
+  status: string;
+  region: string;
+  static_site_domain: string;
 }
 
 export interface ObjectStorageKey {
-  id: number
-  label: string
-  access_key: string
-  secret_key: string
-  limited: boolean
+  id: number;
+  label: string;
+  access_key: string;
+  secret_key: string;
+  limited: boolean;
   bucket_access?: Array<{
-    bucket_name: string
-    cluster: string
-    permissions: string
-  }>
+    bucket_name: string;
+    cluster: string;
+    permissions: string;
+  }>;
   regions?: Array<{
-    id: string
-    s3_endpoint: string
-  }>
+    id: string;
+    s3_endpoint: string;
+  }>;
 }
 
 export interface BucketObject {
-  key: string
-  last_modified: string
-  etag: string
-  size: number
-  storage_class: string
+  key: string;
+  last_modified: string;
+  etag: string;
+  size: number;
+  storage_class: string;
   owner?: {
-    id: string
-    display_name: string
-  }
+    id: string;
+    display_name: string;
+  };
 }
 
 // 监控相关类型
 export interface MonitoringStats {
   cpu: Array<{
-    timestamp: string
-    value: number
-  }>
+    timestamp: string;
+    value: number;
+  }>;
   memory: Array<{
-    timestamp: string
-    used: number
-    total: number
-  }>
+    timestamp: string;
+    used: number;
+    total: number;
+  }>;
   network: Array<{
-    timestamp: string
-    rx_bytes: number
-    tx_bytes: number
-  }>
+    timestamp: string;
+    rx_bytes: number;
+    tx_bytes: number;
+  }>;
   disk: Array<{
-    timestamp: string
-    read_bytes: number
-    write_bytes: number
-  }>
+    timestamp: string;
+    read_bytes: number;
+    write_bytes: number;
+  }>;
 }

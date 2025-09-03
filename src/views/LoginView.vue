@@ -6,7 +6,7 @@
         <p class="mt-2 text-gray-600">管理您的云服务器</p>
       </div>
 
-      <form @submit.prevent="handleLogin" class="space-y-6">
+      <form class="space-y-6" @submit.prevent="handleLogin">
         <div>
           <label for="token" class="block text-sm font-medium text-gray-700">
             API Token
@@ -62,29 +62,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import BaseButton from '@/components/BaseButton.vue'
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import BaseButton from "@/components/BaseButton.vue";
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
 const form = reactive({
-  token: '',
-  remember: true
-})
+  token: "",
+  remember: true,
+});
 
-const error = ref('')
+const error = ref("");
 
 const handleLogin = async () => {
-  error.value = ''
+  error.value = "";
 
   try {
-    await authStore.initAuth()
-    router.push('/instances')
+    await authStore.initAuth();
+    router.push("/instances");
   } catch (err: any) {
-    error.value = err.message
+    error.value = err.message;
   }
-}
+};
 </script>

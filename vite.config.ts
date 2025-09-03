@@ -1,10 +1,10 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
-import vueDevTools from 'vite-plugin-vue-devtools'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
+// import vueDevTools from "vite-plugin-vue-devtools";
+// import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -59,41 +59,42 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {
-    host: '0.0.0.0', // 允许外部访问
+    host: "0.0.0.0", // 允许外部访问
     port: 18080,
     open: false, // 禁用自动打开浏览器
+    allowedHosts: ["con.linapp.fun"], // 允许通过域名访问
     hmr: {
-      overlay: false // 禁用HMR错误覆盖层
+      overlay: false, // 禁用HMR错误覆盖层
     },
     cors: true, // 启用CORS
     proxy: {
-      '/api': {
-        target: 'https://api.linode.com/v4',
+      "/api": {
+        target: "https://api.linode.com/v4",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ""),
         secure: true,
         headers: {
-          'User-Agent': 'Linode PWA Client'
-        }
-      }
-    }
+          "User-Agent": "Linode PWA Client",
+        },
+      },
+    },
   },
   preview: {
-    host: '0.0.0.0',
-    port: 18080
+    host: "0.0.0.0",
+    port: 18080,
   },
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['vue', 'vue-router', 'pinia'],
-          api: ['axios']
-        }
-      }
-    }
-  }
-})
+          vendor: ["vue", "vue-router", "pinia"],
+          api: ["axios"],
+        },
+      },
+    },
+  },
+});

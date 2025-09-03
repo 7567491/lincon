@@ -1,11 +1,8 @@
 <template>
-  <div 
-    class="instance-card"
-    @click="$emit('click')"
-  >
+  <div class="instance-card" @click="$emit('click')">
     <!-- 状态指示条 -->
     <div :class="statusBarClass" class="status-bar"></div>
-    
+
     <!-- 主要内容 -->
     <div class="card-content">
       <!-- 头部信息 -->
@@ -30,28 +27,32 @@
         <div class="spec-item">
           <div class="spec-icon">🖥️</div>
           <div class="spec-info">
-            <div class="spec-value">{{ instance.specs?.vcpus || 'N/A' }}</div>
+            <div class="spec-value">{{ instance.specs?.vcpus || "N/A" }}</div>
             <div class="spec-label">vCPU</div>
           </div>
         </div>
         <div class="spec-item">
           <div class="spec-icon">💾</div>
           <div class="spec-info">
-            <div class="spec-value">{{ formatMemory(instance.specs?.memory) }}</div>
+            <div class="spec-value">
+              {{ formatMemory(instance.specs?.memory) }}
+            </div>
             <div class="spec-label">内存</div>
           </div>
         </div>
         <div class="spec-item">
           <div class="spec-icon">💽</div>
           <div class="spec-info">
-            <div class="spec-value">{{ instance.specs?.disk || 'N/A' }}GB</div>
+            <div class="spec-value">{{ instance.specs?.disk || "N/A" }}GB</div>
             <div class="spec-label">存储</div>
           </div>
         </div>
         <div class="spec-item">
           <div class="spec-icon">🌐</div>
           <div class="spec-info">
-            <div class="spec-value">{{ instance.specs?.transfer || 'N/A' }}TB</div>
+            <div class="spec-value">
+              {{ instance.specs?.transfer || "N/A" }}TB
+            </div>
             <div class="spec-label">流量</div>
           </div>
         </div>
@@ -119,7 +120,9 @@
           <div class="runtime-item">
             <div class="runtime-icon">📊</div>
             <div class="runtime-info">
-              <div class="runtime-value">{{ instance.backups?.enabled ? '已开启' : '未开启' }}</div>
+              <div class="runtime-value">
+                {{ instance.backups?.enabled ? "已开启" : "未开启" }}
+              </div>
               <div class="runtime-label">自动备份</div>
             </div>
           </div>
@@ -146,16 +149,16 @@
         <span class="action-icon">👁️</span>
         查看详情
       </button>
-      <button 
-        v-if="instance.status === 'running'" 
+      <button
+        v-if="instance.status === 'running'"
         class="action-btn secondary"
         @click.stop="$emit('action', 'reboot', instance.id)"
       >
         <span class="action-icon">🔄</span>
         重启
       </button>
-      <button 
-        v-else 
+      <button
+        v-else
         class="action-btn success"
         @click.stop="$emit('action', 'boot', instance.id)"
       >
@@ -167,129 +170,129 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { LinodeInstance } from '@/types'
+import { computed } from "vue";
+import type { LinodeInstance } from "@/types";
 
 interface Props {
-  instance: LinodeInstance
+  instance: LinodeInstance;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 defineEmits<{
-  click: []
-  action: [action: string, instanceId: number]
-}>()
+  click: [];
+  action: [action: string, instanceId: number];
+}>();
 
 const statusText = computed(() => {
   const statusMap: Record<string, string> = {
-    'running': '运行中',
-    'offline': '已停止',
-    'booting': '启动中',
-    'rebooting': '重启中',
-    'shutting_down': '关闭中'
-  }
-  return statusMap[props.instance.status] || props.instance.status
-})
+    running: "运行中",
+    offline: "已停止",
+    booting: "启动中",
+    rebooting: "重启中",
+    shutting_down: "关闭中",
+  };
+  return statusMap[props.instance.status] || props.instance.status;
+});
 
 const statusClass = computed(() => {
   switch (props.instance.status) {
-    case 'running':
-      return 'status-running'
-    case 'offline':
-      return 'status-offline'
+    case "running":
+      return "status-running";
+    case "offline":
+      return "status-offline";
     default:
-      return 'status-pending'
+      return "status-pending";
   }
-})
+});
 
 const statusBarClass = computed(() => {
   switch (props.instance.status) {
-    case 'running':
-      return 'status-bar-running'
-    case 'offline':
-      return 'status-bar-offline'
+    case "running":
+      return "status-bar-running";
+    case "offline":
+      return "status-bar-offline";
     default:
-      return 'status-bar-pending'
+      return "status-bar-pending";
   }
-})
+});
 
 const formatMemory = (memory?: number) => {
-  if (!memory) return 'N/A'
-  return memory >= 1024 ? `${(memory / 1024).toFixed(1)}GB` : `${memory}MB`
-}
+  if (!memory) return "N/A";
+  return memory >= 1024 ? `${(memory / 1024).toFixed(1)}GB` : `${memory}MB`;
+};
 
 const formatRegion = (region: string) => {
   const regionMap: Record<string, string> = {
-    'us-east': '美国东部',
-    'us-west': '美国西部',
-    'eu-west': '欧洲西部',
-    'ap-south': '亚太南部',
-    'ap-northeast': '亚太东北',
-    'ca-central': '加拿大中部'
-  }
-  return regionMap[region] || region
-}
+    "us-east": "美国东部",
+    "us-west": "美国西部",
+    "eu-west": "欧洲西部",
+    "ap-south": "亚太南部",
+    "ap-northeast": "亚太东北",
+    "ca-central": "加拿大中部",
+  };
+  return regionMap[region] || region;
+};
 
 const getRegionFlag = (region: string) => {
   const flagMap: Record<string, string> = {
-    'us-east': '🇺🇸',
-    'us-west': '🇺🇸',
-    'eu-west': '🇪🇺',
-    'ap-south': '🇸🇬',
-    'ap-northeast': '🇯🇵',
-    'ca-central': '🇨🇦'
-  }
-  return flagMap[region] || '🌍'
-}
+    "us-east": "🇺🇸",
+    "us-west": "🇺🇸",
+    "eu-west": "🇪🇺",
+    "ap-south": "🇸🇬",
+    "ap-northeast": "🇯🇵",
+    "ca-central": "🇨🇦",
+  };
+  return flagMap[region] || "🌍";
+};
 
 const formatImage = (image?: string) => {
-  if (!image) return 'N/A'
+  if (!image) return "N/A";
   // 提取操作系统名称
   const imageMap: Record<string, string> = {
-    'linode/ubuntu22.04': 'Ubuntu 22.04 LTS',
-    'linode/ubuntu20.04': 'Ubuntu 20.04 LTS',
-    'linode/debian11': 'Debian 11',
-    'linode/centos7': 'CentOS 7',
-    'linode/fedora37': 'Fedora 37',
-    'linode/arch': 'Arch Linux'
-  }
-  return imageMap[image] || image
-}
+    "linode/ubuntu22.04": "Ubuntu 22.04 LTS",
+    "linode/ubuntu20.04": "Ubuntu 20.04 LTS",
+    "linode/debian11": "Debian 11",
+    "linode/centos7": "CentOS 7",
+    "linode/fedora37": "Fedora 37",
+    "linode/arch": "Arch Linux",
+  };
+  return imageMap[image] || image;
+};
 
 const getUptime = () => {
   // 模拟运行时间计算，实际应该从API获取
-  if (props.instance.status !== 'running') {
-    return '未运行'
+  if (props.instance.status !== "running") {
+    return "未运行";
   }
   // 这里可以基于created时间计算，暂时返回模拟数据
-  const hours = Math.floor(Math.random() * 24 * 7) // 最多7天
+  const hours = Math.floor(Math.random() * 24 * 7); // 最多7天
   if (hours < 24) {
-    return `${hours}小时`
+    return `${hours}小时`;
   } else {
-    const days = Math.floor(hours / 24)
-    const remainingHours = hours % 24
-    return `${days}天${remainingHours}小时`
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return `${days}天${remainingHours}小时`;
   }
-}
+};
 
 const getPricing = () => {
   // 基于实例类型返回估算价格
   const pricingMap: Record<string, number> = {
-    'g6-nanode-1': 5,
-    'g6-standard-1': 10,
-    'g6-standard-2': 20,
-    'g6-standard-4': 40,
-    'g6-standard-6': 80,
-    'g6-standard-8': 160
-  }
-  return pricingMap[props.instance.type] || 0
-}
+    "g6-nanode-1": 5,
+    "g6-standard-1": 10,
+    "g6-standard-2": 20,
+    "g6-standard-4": 40,
+    "g6-standard-6": 80,
+    "g6-standard-8": 160,
+  };
+  return pricingMap[props.instance.type] || 0;
+};
 
 const getHourlyPricing = () => {
-  const monthly = getPricing()
-  return (monthly / 24 / 30).toFixed(3)
-}
+  const monthly = getPricing();
+  return (monthly / 24 / 30).toFixed(3);
+};
 </script>
 
 <style scoped>
@@ -362,7 +365,7 @@ const getHourlyPricing = () => {
 .instance-id {
   font-size: 12px;
   color: var(--text-secondary);
-  font-family: 'SF Mono', 'Monaco', monospace;
+  font-family: "SF Mono", "Monaco", monospace;
   background: var(--bg-secondary);
   padding: 2px 6px;
   border-radius: 4px;
@@ -419,7 +422,7 @@ const getHourlyPricing = () => {
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'SF Mono', 'Monaco', monospace;
+  font-family: "SF Mono", "Monaco", monospace;
 }
 
 .specs-grid {
@@ -516,14 +519,14 @@ const getHourlyPricing = () => {
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
-  font-family: 'SF Mono', 'Monaco', monospace;
+  font-family: "SF Mono", "Monaco", monospace;
   font-weight: 500;
 }
 
 .ipv6-address {
   font-size: 10px;
   color: var(--text-secondary);
-  font-family: 'SF Mono', 'Monaco', monospace;
+  font-family: "SF Mono", "Monaco", monospace;
   word-break: break-all;
 }
 
@@ -616,8 +619,13 @@ const getHourlyPricing = () => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* 新增样式：系统信息 */

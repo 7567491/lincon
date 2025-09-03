@@ -1,152 +1,173 @@
-import axios, { type AxiosInstance } from 'axios'
-import type { LinodeInstance, APIResponse } from '@/types'
+import axios, { type AxiosInstance } from "axios";
+import type { LinodeInstance, APIResponse } from "@/types";
 
 class LinodeAPIService {
-  private client: AxiosInstance
-  private token: string = ''
+  private client: AxiosInstance;
+  private token: string = "";
 
   constructor() {
     this.client = axios.create({
-      baseURL: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_BASE_URL || 'https://api.linode.com/v4'),
+      baseURL: import.meta.env.DEV
+        ? "/api"
+        : import.meta.env.VITE_API_BASE_URL || "https://api.linode.com/v4",
       timeout: 30000, // 增加超时时间到30秒
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
       // 添加代理配置支持
       proxy: false,
       // 确保支持HTTPS
-      httpsAgent: undefined
-    })
+      httpsAgent: undefined,
+    });
 
     // 自动设置环境变量中的token
-    const envToken = import.meta.env.VITE_LINODE_API_TOKEN
+    const envToken = import.meta.env.VITE_LINODE_API_TOKEN;
     if (envToken) {
-      this.setToken(envToken)
+      this.setToken(envToken);
     }
 
     // 请求拦截器 - 添加认证
     this.client.interceptors.request.use((config) => {
       if (this.token) {
-        config.headers.Authorization = `Bearer ${this.token}`
+        config.headers.Authorization = `Bearer ${this.token}`;
       }
-      return config
-    })
+      return config;
+    });
 
     // 响应拦截器 - 错误处理
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error('API请求错误:', {
+        console.error("API请求错误:", {
           status: error.response?.status,
           message: error.message,
           url: error.config?.url,
-          method: error.config?.method
-        })
-        
+          method: error.config?.method,
+        });
+
         if (error.response?.status === 401) {
-          console.error('API Token无效或已过期，需要重新登录')
-        } else if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
-          console.error('网络连接错误，请检查网络设置')
-        } else if (error.code === 'ENOTFOUND' || error.code === 'ERR_NAME_NOT_RESOLVED') {
-          console.error('DNS解析失败，无法连接到api.linode.com')
+          console.error("API Token无效或已过期，需要重新登录");
+        } else if (
+          error.code === "NETWORK_ERROR" ||
+          error.code === "ERR_NETWORK"
+        ) {
+          console.error("网络连接错误，请检查网络设置");
+        } else if (
+          error.code === "ENOTFOUND" ||
+          error.code === "ERR_NAME_NOT_RESOLVED"
+        ) {
+          console.error("DNS解析失败，无法连接到api.linode.com");
         }
-        return Promise.reject(error)
-      }
-    )
+        return Promise.reject(error);
+      },
+    );
   }
 
   setToken(token: string): void {
-    this.token = token
+    this.token = token;
   }
 
   async validateToken(): Promise<any> {
-    const response = await this.client.get('/profile')
-    return response.data
+    const response = await this.client.get("/profile");
+    return response.data;
   }
 
   async getInstances(): Promise<APIResponse<LinodeInstance[]>> {
-    const response = await this.client.get('/linode/instances')
-    return response.data
+    const response = await this.client.get("/linode/instances");
+    return response.data;
   }
 
   async getInstance(id: number): Promise<LinodeInstance> {
-    const response = await this.client.get(`/linode/instances/${id}`)
-    return response.data
+    const response = await this.client.get(`/linode/instances/${id}`);
+    return response.data;
   }
 
   async bootInstance(id: number): Promise<any> {
-    const response = await this.client.post(`/linode/instances/${id}/boot`)
-    return response.data
+    const response = await this.client.post(`/linode/instances/${id}/boot`);
+    return response.data;
   }
 
   async shutdownInstance(id: number): Promise<any> {
-    const response = await this.client.post(`/linode/instances/${id}/shutdown`)
-    return response.data
+    const response = await this.client.post(`/linode/instances/${id}/shutdown`);
+    return response.data;
   }
 
   async rebootInstance(id: number): Promise<any> {
-    const response = await this.client.post(`/linode/instances/${id}/reboot`)
-    return response.data
+    const response = await this.client.post(`/linode/instances/${id}/reboot`);
+    return response.data;
   }
 
   // Object Storage API methods
   async getObjectStorageBuckets(): Promise<any> {
-    const response = await this.client.get('/object-storage/buckets')
-    return response.data
+    const response = await this.client.get("/object-storage/buckets");
+    return response.data;
   }
 
   async createBucket(cluster: string, label: string): Promise<any> {
-    const response = await this.client.post('/object-storage/buckets', {
+    const response = await this.client.post("/object-storage/buckets", {
       cluster,
-      label
-    })
-    return response.data
+      label,
+    });
+    return response.data;
   }
 
   async deleteBucket(cluster: string, label: string): Promise<any> {
-    const response = await this.client.delete(`/object-storage/buckets/${cluster}/${label}`)
-    return response.data
+    const response = await this.client.delete(
+      `/object-storage/buckets/${cluster}/${label}`,
+    );
+    return response.data;
   }
 
-  async getBucketObjects(cluster: string, bucket: string, prefix?: string): Promise<any> {
+  async getBucketObjects(
+    cluster: string,
+    bucket: string,
+    prefix?: string,
+  ): Promise<any> {
     // 注意: 这个API需要S3访问凭证，不是Linode API token
     // 实际实现需要使用AWS SDK或者S3兼容客户端
-    const response = await this.client.get(`/object-storage/buckets/${cluster}/${bucket}/object-list`, {
-      params: { prefix }
-    })
-    return response.data
+    const response = await this.client.get(
+      `/object-storage/buckets/${cluster}/${bucket}/object-list`,
+      {
+        params: { prefix },
+      },
+    );
+    return response.data;
   }
 
   async getObjectStorageClusters(): Promise<any> {
-    const response = await this.client.get('/object-storage/clusters')
-    return response.data
+    const response = await this.client.get("/object-storage/clusters");
+    return response.data;
   }
 
   async getObjectStorageKeys(): Promise<any> {
-    const response = await this.client.get('/object-storage/keys')
-    return response.data
+    const response = await this.client.get("/object-storage/keys");
+    return response.data;
   }
 
   // 获取实例统计数据
   async getInstanceStats(instanceId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/linode/instances/${instanceId}/stats`)
-      return response.data
+      const response = await this.client.get(
+        `/linode/instances/${instanceId}/stats`,
+      );
+      return response.data;
     } catch (error: any) {
-      console.warn('无法获取真实监控数据，使用模拟数据:', error.message)
-      throw error
+      console.warn("无法获取真实监控数据，使用模拟数据:", error.message);
+      throw error;
     }
   }
 
   // 获取实例网络统计
   async getInstanceNetworkStats(instanceId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/linode/instances/${instanceId}/stats`)
-      return response.data
+      const response = await this.client.get(
+        `/linode/instances/${instanceId}/stats`,
+      );
+      return response.data;
     } catch (error: any) {
-      console.warn('无法获取网络统计数据:', error.message)
-      throw error
+      console.warn("无法获取网络统计数据:", error.message);
+      throw error;
     }
   }
 
@@ -156,41 +177,43 @@ class LinodeAPIService {
       // 并行获取多个监控数据
       const [statsResponse, transferResponse] = await Promise.all([
         this.client.get(`/linode/instances/${instanceId}/stats`),
-        this.client.get(`/linode/instances/${instanceId}/transfer`)
-      ])
-      
+        this.client.get(`/linode/instances/${instanceId}/transfer`),
+      ]);
+
       return {
         stats: statsResponse.data,
         transfer: transferResponse.data,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      };
     } catch (error: any) {
-      console.error('获取系统监控数据失败:', error.message)
-      throw error
+      console.error("获取系统监控数据失败:", error.message);
+      throw error;
     }
   }
 
   // 获取实例详细配置信息（用于准确计算资源）
   async getInstanceConfig(instanceId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/linode/instances/${instanceId}`)
-      return response.data
+      const response = await this.client.get(`/linode/instances/${instanceId}`);
+      return response.data;
     } catch (error: any) {
-      console.error('获取实例配置失败:', error.message)
-      throw error
+      console.error("获取实例配置失败:", error.message);
+      throw error;
     }
   }
 
   // 获取实例磁盘使用情况
   async getInstanceDisks(instanceId: number): Promise<any> {
     try {
-      const response = await this.client.get(`/linode/instances/${instanceId}/disks`)
-      return response.data
+      const response = await this.client.get(
+        `/linode/instances/${instanceId}/disks`,
+      );
+      return response.data;
     } catch (error: any) {
-      console.error('获取磁盘数据失败:', error.message)
-      throw error
+      console.error("获取磁盘数据失败:", error.message);
+      throw error;
     }
   }
 }
 
-export const linodeAPI = new LinodeAPIService()
+export const linodeAPI = new LinodeAPIService();

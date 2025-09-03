@@ -13,27 +13,39 @@
           </div>
           <div class="user-greeting">
             <span class="greeting-text">欢迎回来</span>
-            <span class="user-name">{{ authStore.user?.username || 'Manager' }}</span>
+            <span class="user-name">{{
+              authStore.user?.username || "Manager"
+            }}</span>
           </div>
         </div>
         <div class="header-right">
           <!-- V2新增：状态指示器 -->
           <div class="status-indicators">
-            <div class="update-indicator" :class="{ active: instanceStore.lastUpdateTime }">
+            <div
+              class="update-indicator"
+              :class="{ active: instanceStore.lastUpdateTime }"
+            >
               <span class="indicator-dot"></span>
               <span class="indicator-text">实时</span>
             </div>
           </div>
-          <button @click="refreshData" class="refresh-btn" :disabled="instanceStore.isLoading">
-            <span class="refresh-icon" :class="{ 'spinning': instanceStore.isLoading }">🔄</span>
+          <button
+            class="refresh-btn"
+            :disabled="instanceStore.isLoading"
+            @click="refreshData"
+          >
+            <span
+              class="refresh-icon"
+              :class="{ spinning: instanceStore.isLoading }"
+              >🔄</span
+            >
           </button>
-          <button @click="logout" class="logout-btn">
+          <button class="logout-btn" @click="logout">
             <span class="logout-icon">👤</span>
             <span class="logout-text">退出</span>
           </button>
         </div>
       </div>
-      
     </header>
 
     <!-- 导航菜单 -->
@@ -50,26 +62,33 @@
           </div>
           <div class="stat-trend">{{ getInstanceTrend() }}</div>
         </div>
-        
+
         <div class="stat-card running" @click="setStatusFilter('running')">
           <div class="stat-icon">✅</div>
           <div class="stat-content">
-            <div class="stat-value">{{ instanceStore.runningInstances.length }}</div>
+            <div class="stat-value">
+              {{ instanceStore.runningInstances.length }}
+            </div>
             <div class="stat-label">运行中</div>
           </div>
           <div class="stat-trend">{{ getRunningTrend() }}</div>
         </div>
-        
+
         <div class="stat-card stopped" @click="setStatusFilter('offline')">
           <div class="stat-icon">⏹️</div>
           <div class="stat-content">
-            <div class="stat-value">{{ instanceStore.stoppedInstances.length }}</div>
+            <div class="stat-value">
+              {{ instanceStore.stoppedInstances.length }}
+            </div>
             <div class="stat-label">已停止</div>
           </div>
           <div class="stat-trend">{{ getStoppedTrend() }}</div>
         </div>
-        
-        <div class="stat-card resources" @click="showResourceDetails = !showResourceDetails">
+
+        <div
+          class="stat-card resources"
+          @click="showResourceDetails = !showResourceDetails"
+        >
           <div class="stat-icon">💾</div>
           <div class="stat-content">
             <div class="stat-value">{{ getTotalResources() }}</div>
@@ -116,7 +135,7 @@
       <div v-else-if="instanceStore.error" class="error-container">
         <div class="error-icon">⚠️</div>
         <p class="error-message">{{ instanceStore.error }}</p>
-        <button @click="loadInstances" class="retry-btn">
+        <button class="retry-btn" @click="loadInstances">
           <span class="retry-icon">🔄</span>
           重新尝试
         </button>
@@ -129,7 +148,11 @@
           <h2 class="list-title">
             <span class="title-icon">🖥️</span>
             实例列表
-            <span class="instance-count">({{ filteredInstances.length }}/{{ instanceStore.instances.length }})</span>
+            <span class="instance-count"
+              >({{ filteredInstances.length }}/{{
+                instanceStore.instances.length
+              }})</span
+            >
           </h2>
           <div class="list-actions">
             <div class="list-filters">
@@ -142,35 +165,50 @@
               </select>
               <select v-model="regionFilter" class="filter-select">
                 <option value="">全部地区</option>
-                <option v-for="region in availableRegions" :key="region" :value="region">
+                <option
+                  v-for="region in availableRegions"
+                  :key="region"
+                  :value="region"
+                >
                   {{ region }}
                 </option>
               </select>
             </div>
             <div class="action-buttons">
-              <button @click="toggleAutoRefresh" class="auto-refresh-btn" 
-                      :class="{ active: autoRefreshEnabled }">
+              <button
+                class="auto-refresh-btn"
+                :class="{ active: autoRefreshEnabled }"
+                @click="toggleAutoRefresh"
+              >
                 <span class="auto-refresh-icon">🔄</span>
-                <span class="auto-refresh-text">{{ autoRefreshEnabled ? '停止' : '自动' }}刷新</span>
+                <span class="auto-refresh-text"
+                  >{{ autoRefreshEnabled ? "停止" : "自动" }}刷新</span
+                >
               </button>
-              
+
               <!-- V2新功能：一键筛选按钮 -->
               <div class="quick-actions">
                 <div class="quick-actions-label">V2新功能:</div>
                 <div class="button-row">
-                  <button @click="setStatusFilter('running')" 
-                          class="quick-filter-btn running"
-                          :class="{ active: statusFilter === 'running' }">
+                  <button
+                    class="quick-filter-btn running"
+                    :class="{ active: statusFilter === 'running' }"
+                    @click="setStatusFilter('running')"
+                  >
                     ✅ 运行中
                   </button>
-                  <button @click="setStatusFilter('offline')" 
-                          class="quick-filter-btn stopped"
-                          :class="{ active: statusFilter === 'offline' }">
+                  <button
+                    class="quick-filter-btn stopped"
+                    :class="{ active: statusFilter === 'offline' }"
+                    @click="setStatusFilter('offline')"
+                  >
                     ⏹️ 已停止
                   </button>
-                  <button @click="setStatusFilter('')" 
-                          class="quick-filter-btn all"
-                          :class="{ active: statusFilter === '' }">
+                  <button
+                    class="quick-filter-btn all"
+                    :class="{ active: statusFilter === '' }"
+                    @click="setStatusFilter('')"
+                  >
                     📊 全部
                   </button>
                 </div>
@@ -191,12 +229,14 @@
         </div>
 
         <!-- 空状态 -->
-        <div v-if="filteredInstances.length === 0 && !instanceStore.isLoading" 
-             class="empty-state">
+        <div
+          v-if="filteredInstances.length === 0 && !instanceStore.isLoading"
+          class="empty-state"
+        >
           <div class="empty-icon">📱</div>
           <h3 class="empty-title">暂无实例</h3>
           <p class="empty-message">
-            {{ statusFilter ? '没有匹配的实例' : '还没有创建任何实例' }}
+            {{ statusFilter ? "没有匹配的实例" : "还没有创建任何实例" }}
           </p>
           <button v-if="!statusFilter" class="create-btn">
             <span class="create-icon">➕</span>
@@ -209,186 +249,203 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useInstanceStore } from '@/stores/instances'
-import { useAuthStore } from '@/stores/auth'
-import InstanceCard from '@/components/InstanceCard.vue'
-import AppNavigation from '@/components/AppNavigation.vue'
+import { onMounted, onUnmounted, ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useInstanceStore } from "@/stores/instances";
+import { useAuthStore } from "@/stores/auth";
+import InstanceCard from "@/components/InstanceCard.vue";
+import AppNavigation from "@/components/AppNavigation.vue";
 
-const router = useRouter()
-const instanceStore = useInstanceStore()
-const authStore = useAuthStore()
+const router = useRouter();
+const instanceStore = useInstanceStore();
+const authStore = useAuthStore();
 
 // V2增强：多重过滤器
-const statusFilter = ref('')
-const regionFilter = ref('')
-const showResourceDetails = ref(false)
+const statusFilter = ref("");
+const regionFilter = ref("");
+const showResourceDetails = ref(false);
 
 // V2增强：自动刷新功能
-const autoRefreshEnabled = ref(false)
-const autoRefreshInterval = ref<NodeJS.Timeout | null>(null)
+const autoRefreshEnabled = ref(false);
+const autoRefreshInterval = ref<number | null>(null);
 
 // V2新增：欢迎横幅控制
-const showWelcomeBanner = ref(true)
+const showWelcomeBanner = ref(true);
 
 // V2新增：首次访问检测
 onMounted(() => {
-  const hasVisited = localStorage.getItem('v2-welcome-dismissed')
+  const hasVisited = localStorage.getItem("v2-welcome-dismissed");
   if (hasVisited) {
-    showWelcomeBanner.value = false
+    showWelcomeBanner.value = false;
   }
-})
+});
 
 const filteredInstances = computed(() => {
-  let filtered = instanceStore.instances
-  
+  let filtered = instanceStore.instances;
+
   // 按状态过滤
   if (statusFilter.value) {
-    filtered = filtered.filter(instance => 
-      instance.status === statusFilter.value
-    )
+    filtered = filtered.filter(
+      (instance) => instance.status === statusFilter.value,
+    );
   }
-  
+
   // 按地区过滤
   if (regionFilter.value) {
-    filtered = filtered.filter(instance => 
-      instance.region === regionFilter.value
-    )
+    filtered = filtered.filter(
+      (instance) => instance.region === regionFilter.value,
+    );
   }
-  
-  return filtered
-})
+
+  return filtered;
+});
 
 // V2新增：可用地区列表
 const availableRegions = computed(() => {
   const regions = new Set(
     instanceStore.instances
-      .map(instance => instance.region)
-      .filter(region => region)
-  )
-  return Array.from(regions)
-})
+      .map((instance) => instance.region)
+      .filter((region) => region),
+  );
+  return Array.from(regions);
+});
 
 const loadInstances = () => {
-  instanceStore.loadInstances()
-}
+  instanceStore.loadInstances();
+};
 
 const refreshData = () => {
-  loadInstances()
-}
+  loadInstances();
+};
 
 const viewInstance = (id: number) => {
-  router.push(`/instances/${id}`)
-}
+  router.push(`/instances/${id}`);
+};
 
 const handleInstanceAction = async (action: string, instanceId: number) => {
   try {
-    await instanceStore.performAction(action, instanceId)
+    await instanceStore.performAction(action, instanceId);
   } catch (error) {
-    console.error('操作失败:', error)
+    console.error("操作失败:", error);
   }
-}
+};
 
 const logout = () => {
-  authStore.logout()
-  router.push('/login')
-}
+  authStore.logout();
+  router.push("/login");
+};
 
 const getRunningTrend = () => {
-  const running = instanceStore.runningInstances.length
-  const total = instanceStore.instances.length
-  return total > 0 ? `${Math.round((running / total) * 100)}%` : '0%'
-}
+  const running = instanceStore.runningInstances.length;
+  const total = instanceStore.instances.length;
+  return total > 0 ? `${Math.round((running / total) * 100)}%` : "0%";
+};
 
 const getStoppedTrend = () => {
-  const stopped = instanceStore.stoppedInstances.length
-  const total = instanceStore.instances.length
-  return total > 0 ? `${Math.round((stopped / total) * 100)}%` : '0%'
-}
+  const stopped = instanceStore.stoppedInstances.length;
+  const total = instanceStore.instances.length;
+  return total > 0 ? `${Math.round((stopped / total) * 100)}%` : "0%";
+};
 
 // V2增强：资源统计函数
 const setStatusFilter = (status: string) => {
-  statusFilter.value = status
-}
+  statusFilter.value = status;
+};
 
 const getTotalResources = () => {
-  const totalCpu = instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.specs?.vcpus || 0), 0)
-  const totalMemory = instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.specs?.memory || 0), 0)
-  
-  return `${totalCpu}C/${Math.round(totalMemory / 1024)}G`
-}
+  const totalCpu = instanceStore.instances.reduce(
+    (sum, instance) => sum + (instance.specs?.vcpus || 0),
+    0,
+  );
+  const totalMemory = instanceStore.instances.reduce(
+    (sum, instance) => sum + (instance.specs?.memory || 0),
+    0,
+  );
+
+  return `${totalCpu}C/${Math.round(totalMemory / 1024)}G`;
+};
 
 const getTotalCPU = () => {
-  return instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.specs?.vcpus || 0), 0)
-}
+  return instanceStore.instances.reduce(
+    (sum, instance) => sum + (instance.specs?.vcpus || 0),
+    0,
+  );
+};
 
 const getTotalMemory = () => {
-  const totalMemory = instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.specs?.memory || 0), 0)
-  return Math.round(totalMemory / 1024)
-}
+  const totalMemory = instanceStore.instances.reduce(
+    (sum, instance) => sum + (instance.specs?.memory || 0),
+    0,
+  );
+  return Math.round(totalMemory / 1024);
+};
 
 const getTotalStorage = () => {
-  return instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.specs?.disk || 0), 0)
-}
+  return instanceStore.instances.reduce(
+    (sum, instance) => sum + (instance.specs?.disk || 0),
+    0,
+  );
+};
 
 const getMonthlyCost = () => {
-  const totalCost = instanceStore.instances.reduce((sum, instance) => 
-    sum + (instance.type_info?.price?.monthly || 0), 0)
-  return totalCost.toFixed(2)
-}
+  const totalCost = instanceStore.instances.reduce(
+    (sum, instance) => sum + (instance.type_info?.price?.monthly || 0),
+    0,
+  );
+  return totalCost.toFixed(2);
+};
 
 const getCostEstimate = () => {
-  const totalCost = getMonthlyCost()
-  return `$${totalCost}/月`
-}
+  const totalCost = getMonthlyCost();
+  return `$${totalCost}/月`;
+};
 
 const getInstanceTrend = () => {
-  const total = instanceStore.instances.length
-  return total > 0 ? `${total}台` : '0台'
-}
+  const total = instanceStore.instances.length;
+  return total > 0 ? `${total}台` : "0台";
+};
 
 // V2增强：使用store的自动刷新功能
 const toggleAutoRefresh = () => {
-  autoRefreshEnabled.value = !autoRefreshEnabled.value
-  
+  autoRefreshEnabled.value = !autoRefreshEnabled.value;
+
   if (autoRefreshEnabled.value) {
     // 使用store的自动刷新功能
-    instanceStore.startAutoRefresh(30000)
+    instanceStore.startAutoRefresh(30000);
   } else {
     // 停止自动刷新
-    instanceStore.stopAutoRefresh()
+    instanceStore.stopAutoRefresh();
   }
-}
+};
 
 // V2新增：欢迎横幅操作
-const dismissWelcome = () => {
-  showWelcomeBanner.value = false
-  localStorage.setItem('v2-welcome-dismissed', 'true')
-}
+// const dismissWelcome = () => {
+//   showWelcomeBanner.value = false;
+//   localStorage.setItem("v2-welcome-dismissed", "true");
+// };
 
 onMounted(() => {
-  loadInstances()
-})
+  loadInstances();
+});
 
 // V2增强：组件卸载时清理store的定时器
 onUnmounted(() => {
-  instanceStore.stopAutoRefresh()
+  instanceStore.stopAutoRefresh();
   if (autoRefreshInterval.value) {
-    clearInterval(autoRefreshInterval.value)
+    clearInterval(autoRefreshInterval.value);
   }
-})
+});
 </script>
 
 <style scoped>
 .app-container {
   height: 100%;
-  background: linear-gradient(135deg, rgba(0, 176, 79, 0.05) 0%, rgba(17, 24, 39, 0.98) 50%, rgba(55, 131, 220, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 176, 79, 0.05) 0%,
+    rgba(17, 24, 39, 0.98) 50%,
+    rgba(55, 131, 220, 0.05) 100%
+  );
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -529,8 +586,13 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* V2新增：功能横幅样式 */
@@ -701,7 +763,7 @@ onUnmounted(() => {
 }
 
 .stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -767,7 +829,9 @@ onUnmounted(() => {
 
 .stat-card:hover {
   transform: translateY(-1px);
-  box-shadow: var(--card-shadow), 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    var(--card-shadow),
+    0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* V2新增：资源详情面板 */
@@ -928,7 +992,7 @@ onUnmounted(() => {
     flex-direction: row;
     align-items: center;
   }
-  
+
   .list-actions {
     justify-content: flex-end;
   }
@@ -1146,8 +1210,12 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 响应式适配 */
@@ -1155,12 +1223,12 @@ onUnmounted(() => {
   .action-buttons {
     align-items: center;
   }
-  
+
   .quick-actions {
     flex-wrap: wrap;
     justify-content: center;
   }
-  
+
   .quick-filter-btn {
     font-size: 9px;
     padding: 5px 8px;
@@ -1171,24 +1239,24 @@ onUnmounted(() => {
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .header-content {
     padding: 10px 12px;
   }
-  
+
   .main-content {
     padding: 0 12px 12px 12px;
   }
-  
+
   .stats-section {
     padding: 10px 12px;
   }
-  
+
   .quick-actions {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .quick-filter-btn {
     width: 100%;
     text-align: center;

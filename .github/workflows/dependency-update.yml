@@ -1,0 +1,63 @@
+name: 依赖更新检查
+
+on:
+  schedule:
+    # 每周一检查一次依赖更新
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-dependencies:
+    name: 检查依赖更新
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout代码
+      uses: actions/checkout@v4
+      
+    - name: 设置Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: 安装依赖
+      run: npm ci
+      
+    - name: 检查过时依赖
+      run: |
+        echo "## 过时依赖报告" > outdated-report.md
+        echo "" >> outdated-report.md
+        npm outdated --json > outdated.json || true
+        
+        if [ -s outdated.json ]; then
+          echo "发现以下过时依赖：" >> outdated-report.md
+          echo '```json' >> outdated-report.md
+          cat outdated.json >> outdated-report.md
+          echo '```' >> outdated-report.md
+        else
+          echo "✅ 所有依赖都是最新的！" >> outdated-report.md
+        fi
+        
+    - name: 安全审计
+      run: |
+        echo "" >> outdated-report.md
+        echo "## 安全审计报告" >> outdated-report.md
+        echo "" >> outdated-report.md
+        
+        if npm audit --audit-level=moderate; then
+          echo "✅ 没有发现安全漏洞" >> outdated-report.md
+        else
+          echo "⚠️ 发现安全漏洞，请及时处理" >> outdated-report.md
+          npm audit --audit-level=moderate --json >> audit-report.json || true
+        fi
+        
+    - name: 上传报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-report
+        path: |
+          outdated-report.md
+          outdated.json
+          audit-report.json
+        retention-days: 30

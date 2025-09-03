@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import SmartLayout from '@/components/SmartLayout.vue'
+import { RouterView } from "vue-router";
+import { onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import SmartLayout from "@/components/SmartLayout.vue";
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
 onMounted(() => {
   // 应用启动时恢复登录状态
-  authStore.restoreAuth()
-  
+  authStore.restoreAuth();
+
   // 强制应用暗色主题
-  document.documentElement.classList.add('dark')
-  document.body.classList.add('dark')
-  
+  document.documentElement.classList.add("dark");
+  document.body.classList.add("dark");
+
   // V2版本标识
-  console.log('🚀 Linode Manager V2 启动')
-  console.log('✨ 智能设备适配已激活')
-})
+  console.log("🚀 Linode Manager V2 启动");
+  console.log("✨ 智能设备适配已激活");
+});
 </script>
 
 <template>
@@ -36,13 +36,15 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow-x: hidden;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   color: #333;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -96,7 +98,7 @@ header {
   html {
     font-size: 14px;
   }
-  
+
   .container {
     padding: 1rem;
   }

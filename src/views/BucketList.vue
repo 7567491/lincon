@@ -2,33 +2,37 @@
   <div class="bucket-list-container">
     <!-- 导航菜单 -->
     <AppNavigation />
-    
+
     <!-- 头部 -->
     <div class="header">
       <div class="title-section">
         <h1>Object Storage</h1>
         <p class="subtitle">存储桶管理</p>
       </div>
-      
+
       <div class="header-actions">
-        <button 
+        <button
           class="refresh-btn"
-          @click="handleRefresh"
           :disabled="bucketStore.isLoading"
+          @click="handleRefresh"
         >
-          <span class="refresh-icon" :class="{ 'spinning': bucketStore.isLoading }">🔄</span>
+          <span
+            class="refresh-icon"
+            :class="{ spinning: bucketStore.isLoading }"
+            >🔄</span
+          >
           刷新
         </button>
-        
-        <button 
+
+        <button
           class="auto-refresh-btn"
+          :class="{ active: bucketStore.isAutoRefreshing }"
           @click="toggleAutoRefresh"
-          :class="{ 'active': bucketStore.isAutoRefreshing }"
         >
-          <span class="pulse-dot" v-if="bucketStore.isAutoRefreshing"></span>
-          {{ bucketStore.isAutoRefreshing ? '自动刷新中' : '自动刷新' }}
+          <span v-if="bucketStore.isAutoRefreshing" class="pulse-dot"></span>
+          {{ bucketStore.isAutoRefreshing ? "自动刷新中" : "自动刷新" }}
         </button>
-        
+
         <button class="create-btn" @click="showCreateModal = true">
           ➕ 创建存储桶
         </button>
@@ -44,28 +48,34 @@
           <div class="stat-value">{{ bucketStore.totalBuckets }}</div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">📁</div>
         <div class="stat-content">
           <div class="stat-label">总对象数</div>
-          <div class="stat-value">{{ bucketStore.totalObjects.toLocaleString() }}</div>
+          <div class="stat-value">
+            {{ bucketStore.totalObjects.toLocaleString() }}
+          </div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">💾</div>
         <div class="stat-content">
           <div class="stat-label">总存储大小</div>
-          <div class="stat-value">{{ bucketStore.formatFileSize(bucketStore.totalSize) }}</div>
+          <div class="stat-value">
+            {{ bucketStore.formatFileSize(bucketStore.totalSize) }}
+          </div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">🌐</div>
         <div class="stat-content">
           <div class="stat-label">活跃集群</div>
-          <div class="stat-value">{{ Object.keys(bucketStore.bucketsByCluster).length }}</div>
+          <div class="stat-value">
+            {{ Object.keys(bucketStore.bucketsByCluster).length }}
+          </div>
         </div>
       </div>
     </div>
@@ -74,7 +84,7 @@
     <div v-if="bucketStore.error" class="error-banner">
       <span class="error-icon">⚠️</span>
       {{ bucketStore.error }}
-      <button @click="bucketStore.error = null" class="close-btn">✕</button>
+      <button class="close-btn" @click="bucketStore.error = null">✕</button>
     </div>
 
     <!-- 加载状态 -->
@@ -97,8 +107,8 @@
 
       <!-- 存储桶网格 -->
       <div v-else class="buckets-grid">
-        <div 
-          v-for="bucket in bucketStore.buckets" 
+        <div
+          v-for="bucket in bucketStore.buckets"
           :key="`${bucket.cluster}-${bucket.label}`"
           class="bucket-card"
           @click="navigateToBucket(bucket)"
@@ -106,36 +116,51 @@
           <div class="bucket-header">
             <div class="bucket-icon">🪣</div>
             <div class="bucket-menu">
-              <button class="menu-btn" @click.stop="toggleBucketMenu(bucket.label)">⋯</button>
-              <div v-if="activeBucketMenu === bucket.label" class="menu-dropdown">
+              <button
+                class="menu-btn"
+                @click.stop="toggleBucketMenu(bucket.label)"
+              >
+                ⋯
+              </button>
+              <div
+                v-if="activeBucketMenu === bucket.label"
+                class="menu-dropdown"
+              >
                 <button @click.stop="copyBucketUrl(bucket)">📋 复制URL</button>
               </div>
             </div>
           </div>
-          
+
           <div class="bucket-info">
             <h3 class="bucket-name">{{ bucket.label }}</h3>
             <p class="bucket-cluster">{{ bucket.cluster }}</p>
             <p class="bucket-hostname">{{ bucket.hostname }}</p>
           </div>
-          
+
           <div class="bucket-stats">
             <div class="stat-row">
               <span class="stat-label">对象数量:</span>
-              <span class="stat-value">{{ bucket.objects.toLocaleString() }}</span>
+              <span class="stat-value">{{
+                bucket.objects.toLocaleString()
+              }}</span>
             </div>
             <div class="stat-row">
               <span class="stat-label">大小:</span>
-              <span class="stat-value">{{ bucketStore.formatFileSize(bucket.size) }}</span>
+              <span class="stat-value">{{
+                bucketStore.formatFileSize(bucket.size)
+              }}</span>
             </div>
             <div class="stat-row">
               <span class="stat-label">创建时间:</span>
               <span class="stat-value">{{ formatDate(bucket.created) }}</span>
             </div>
           </div>
-          
+
           <div class="bucket-actions">
-            <button class="action-btn browse-btn" @click.stop="navigateToBucket(bucket)">
+            <button
+              class="action-btn browse-btn"
+              @click.stop="navigateToBucket(bucket)"
+            >
               📁 浏览文件
             </button>
           </div>
@@ -150,48 +175,49 @@
           <h3>创建新存储桶</h3>
           <button class="close-modal-btn" @click="closeCreateModal">✕</button>
         </div>
-        
+
         <div class="modal-body">
           <div class="form-group">
             <label>存储桶名称</label>
-            <input 
-              v-model="newBucketName" 
-              type="text" 
+            <input
+              v-model="newBucketName"
+              type="text"
               placeholder="输入存储桶名称"
-              :class="{ 'error': nameError }"
+              :class="{ error: nameError }"
             />
             <div v-if="nameError" class="field-error">{{ nameError }}</div>
           </div>
-          
+
           <div class="form-group">
             <label>选择集群</label>
-            <select v-model="selectedCluster" :class="{ 'error': clusterError }">
+            <select v-model="selectedCluster" :class="{ error: clusterError }">
               <option value="">请选择集群</option>
-              <option 
-                v-for="cluster in bucketStore.clusters" 
+              <option
+                v-for="cluster in bucketStore.clusters"
                 :key="cluster.id"
                 :value="cluster.id"
               >
                 {{ cluster.id }} ({{ cluster.region }})
               </option>
             </select>
-            <div v-if="clusterError" class="field-error">{{ clusterError }}</div>
+            <div v-if="clusterError" class="field-error">
+              {{ clusterError }}
+            </div>
           </div>
         </div>
-        
+
         <div class="modal-footer">
           <button class="cancel-btn" @click="closeCreateModal">取消</button>
-          <button 
-            class="confirm-btn" 
-            @click="createBucket"
+          <button
+            class="confirm-btn"
             :disabled="bucketStore.isLoading"
+            @click="createBucket"
           >
-            {{ bucketStore.isLoading ? '创建中...' : '创建存储桶' }}
+            {{ bucketStore.isLoading ? "创建中..." : "创建存储桶" }}
           </button>
         </div>
       </div>
     </div>
-
 
     <!-- 更新时间显示 -->
     <div v-if="bucketStore.lastUpdateTime" class="last-update">
@@ -201,142 +227,136 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useBucketStore } from '@/stores/buckets'
-import type { ObjectStorageBucket } from '@/types'
-import AppNavigation from '@/components/AppNavigation.vue'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { useBucketStore } from "@/stores/buckets";
+import type { ObjectStorageBucket } from "@/types";
+import AppNavigation from "@/components/AppNavigation.vue";
 
-const router = useRouter()
-const bucketStore = useBucketStore()
+const router = useRouter();
+const bucketStore = useBucketStore();
 
 // 响应式状态
-const showCreateModal = ref(false)
-const newBucketName = ref('')
-const selectedCluster = ref('')
-const nameError = ref('')
-const clusterError = ref('')
-const activeBucketMenu = ref<string | null>(null)
+const showCreateModal = ref(false);
+const newBucketName = ref("");
+const selectedCluster = ref("");
+const nameError = ref("");
+const clusterError = ref("");
+const activeBucketMenu = ref<string | null>(null);
 
 // 组件挂载时初始化数据
 onMounted(async () => {
-  await Promise.all([
-    bucketStore.loadBuckets(),
-    bucketStore.loadClusters()
-  ])
-})
+  await Promise.all([bucketStore.loadBuckets(), bucketStore.loadClusters()]);
+});
 
 // 组件卸载时清理定时器
 onUnmounted(() => {
-  bucketStore.stopAutoRefresh()
-  document.removeEventListener('click', closeAllMenus)
-})
+  bucketStore.stopAutoRefresh();
+  document.removeEventListener("click", closeAllMenus);
+});
 
 // 方法定义
 const handleRefresh = async () => {
-  await bucketStore.loadBuckets()
-}
+  await bucketStore.loadBuckets();
+};
 
 const toggleAutoRefresh = () => {
   if (bucketStore.isAutoRefreshing) {
-    bucketStore.stopAutoRefresh()
+    bucketStore.stopAutoRefresh();
   } else {
-    bucketStore.startAutoRefresh()
+    bucketStore.startAutoRefresh();
   }
-}
+};
 
 const navigateToBucket = (bucket: ObjectStorageBucket) => {
   router.push({
-    name: 'bucket-detail',
+    name: "bucket-detail",
     params: {
       cluster: bucket.cluster,
-      bucket: bucket.label
-    }
-  })
-}
+      bucket: bucket.label,
+    },
+  });
+};
 
 const toggleBucketMenu = (bucketLabel: string) => {
   if (activeBucketMenu.value === bucketLabel) {
-    activeBucketMenu.value = null
+    activeBucketMenu.value = null;
   } else {
-    activeBucketMenu.value = bucketLabel
+    activeBucketMenu.value = bucketLabel;
     // 添加全局点击监听器来关闭菜单
     setTimeout(() => {
-      document.addEventListener('click', closeAllMenus)
-    }, 0)
+      document.addEventListener("click", closeAllMenus);
+    }, 0);
   }
-}
+};
 
 const closeAllMenus = () => {
-  activeBucketMenu.value = null
-  document.removeEventListener('click', closeAllMenus)
-}
+  activeBucketMenu.value = null;
+  document.removeEventListener("click", closeAllMenus);
+};
 
 const copyBucketUrl = async (bucket: ObjectStorageBucket) => {
-  const url = `https://${bucket.hostname}`
+  const url = `https://${bucket.hostname}`;
   try {
-    await navigator.clipboard.writeText(url)
+    await navigator.clipboard.writeText(url);
     // 可以添加成功提示
   } catch (err) {
-    console.error('复制失败:', err)
+    console.error("复制失败:", err);
   }
-  closeAllMenus()
-}
-
+  closeAllMenus();
+};
 
 const validateForm = (): boolean => {
-  nameError.value = ''
-  clusterError.value = ''
-  
+  nameError.value = "";
+  clusterError.value = "";
+
   if (!newBucketName.value.trim()) {
-    nameError.value = '请输入存储桶名称'
-    return false
+    nameError.value = "请输入存储桶名称";
+    return false;
   }
-  
+
   if (!/^[a-z0-9-]{3,63}$/.test(newBucketName.value)) {
-    nameError.value = '名称只能包含小写字母、数字和连字符，长度3-63字符'
-    return false
+    nameError.value = "名称只能包含小写字母、数字和连字符，长度3-63字符";
+    return false;
   }
-  
+
   if (!selectedCluster.value) {
-    clusterError.value = '请选择一个集群'
-    return false
+    clusterError.value = "请选择一个集群";
+    return false;
   }
-  
-  return true
-}
+
+  return true;
+};
 
 const createBucket = async () => {
-  if (!validateForm()) return
-  
+  if (!validateForm()) return;
+
   try {
-    await bucketStore.createBucket(selectedCluster.value, newBucketName.value)
-    closeCreateModal()
-  } catch (err) {
+    await bucketStore.createBucket(selectedCluster.value, newBucketName.value);
+    closeCreateModal();
+  } catch {
     // 错误已经在store中处理
   }
-}
-
+};
 
 const closeCreateModal = () => {
-  showCreateModal.value = false
-  newBucketName.value = ''
-  selectedCluster.value = ''
-  nameError.value = ''
-  clusterError.value = ''
-}
-
+  showCreateModal.value = false;
+  newBucketName.value = "";
+  selectedCluster.value = "";
+  nameError.value = "";
+  clusterError.value = "";
+};
 
 const formatDate = (dateString: string): string => {
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+  const date = new Date(dateString);
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 </script>
 
 <style scoped>
@@ -345,7 +365,11 @@ const formatDate = (dateString: string): string => {
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
-  background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.98) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.95) 0%,
+    rgba(31, 41, 55, 0.98) 100%
+  );
   backdrop-filter: blur(10px);
 }
 
@@ -412,8 +436,12 @@ const formatDate = (dateString: string): string => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .auto-refresh-btn {
@@ -442,8 +470,15 @@ const formatDate = (dateString: string): string => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 .create-btn {
@@ -705,7 +740,8 @@ const formatDate = (dateString: string): string => {
   margin: 0 0 8px 0;
 }
 
-.bucket-cluster, .bucket-hostname {
+.bucket-cluster,
+.bucket-hostname {
   color: #b0b0b0;
   font-size: 14px;
   margin: 4px 0;
@@ -820,7 +856,8 @@ const formatDate = (dateString: string): string => {
   margin-bottom: 8px;
 }
 
-.form-group input, .form-group select {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -830,13 +867,15 @@ const formatDate = (dateString: string): string => {
   font-size: 14px;
 }
 
-.form-group input:focus, .form-group select:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #3683dc;
   background: rgba(255, 255, 255, 0.08);
 }
 
-.form-group input.error, .form-group select.error {
+.form-group input.error,
+.form-group select.error {
   border-color: #dc3545;
 }
 
@@ -945,15 +984,15 @@ const formatDate = (dateString: string): string => {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .header-actions {
     justify-content: center;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .buckets-grid {
     grid-template-columns: 1fr;
   }
@@ -963,11 +1002,11 @@ const formatDate = (dateString: string): string => {
   .bucket-list-container {
     padding: 16px;
   }
-  
+
   .header-actions {
     flex-direction: column;
   }
-  
+
   .modal {
     width: 95%;
   }

@@ -1,0 +1,30 @@
+[Unit]
+Description=Linode PWA Development Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=lincon
+Group=lincon
+WorkingDirectory=/home/lincon/lincon
+Environment=NODE_ENV=development
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/npm run dev
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=linode-pwa
+
+# 健康检查
+ExecStartPost=/bin/sleep 10
+ExecStartPost=/bin/bash -c 'curl -f http://localhost:18080/ || exit 1'
+
+# 安全设置
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

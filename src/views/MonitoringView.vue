@@ -2,33 +2,32 @@
   <div class="monitoring-container">
     <!-- 导航菜单 -->
     <AppNavigation />
-    
+
     <!-- 头部 -->
     <div class="header">
       <div class="title-section">
         <h1>System Monitoring</h1>
         <p class="subtitle">系统资源监控</p>
       </div>
-      
+
       <div class="header-actions">
-        <button 
+        <button
           class="refresh-btn"
-          @click="handleRefresh"
           :disabled="isLoading"
+          @click="handleRefresh"
         >
-          <span class="refresh-icon" :class="{ 'spinning': isLoading }">🔄</span>
+          <span class="refresh-icon" :class="{ spinning: isLoading }">🔄</span>
           刷新
         </button>
-        
-        <button 
-          class="auto-refresh-btn"
-          @click="toggleAutoRefresh"
-          :class="{ 'active': isAutoRefreshing }"
-        >
-          <span class="pulse-dot" v-if="isAutoRefreshing"></span>
-          {{ isAutoRefreshing ? '自动刷新中' : '自动刷新' }}
-        </button>
 
+        <button
+          class="auto-refresh-btn"
+          :class="{ active: isAutoRefreshing }"
+          @click="toggleAutoRefresh"
+        >
+          <span v-if="isAutoRefreshing" class="pulse-dot"></span>
+          {{ isAutoRefreshing ? "自动刷新中" : "自动刷新" }}
+        </button>
       </div>
     </div>
 
@@ -36,7 +35,7 @@
     <div v-if="error" class="error-banner">
       <span class="error-icon">⚠️</span>
       {{ error }}
-      <button @click="error = null" class="close-btn">✕</button>
+      <button class="close-btn" @click="error = null">✕</button>
     </div>
 
     <!-- 实例选择器 -->
@@ -44,8 +43,8 @@
       <label>选择监控实例:</label>
       <select v-model="selectedInstanceId" @change="loadMonitoringData">
         <option value="">请选择实例</option>
-        <option 
-          v-for="instance in instanceStore.instances" 
+        <option
+          v-for="instance in instanceStore.instances"
           :key="instance.id"
           :value="instance.id"
         >
@@ -61,18 +60,28 @@
     </div>
 
     <!-- 监控数据获取失败状态 -->
-    <div v-else-if="selectedInstanceId && error && currentStatus.cpu === 0" class="error-state">
+    <div
+      v-else-if="selectedInstanceId && error && currentStatus.cpu === 0"
+      class="error-state"
+    >
       <div class="error-icon-large">📊</div>
       <h3>监控数据不可用</h3>
       <p>{{ error }}</p>
-      <button class="retry-btn" @click="loadMonitoringData" :disabled="isLoading">
-        <span class="refresh-icon" :class="{ 'spinning': isLoading }">🔄</span>
+      <button
+        class="retry-btn"
+        :disabled="isLoading"
+        @click="loadMonitoringData"
+      >
+        <span class="refresh-icon" :class="{ spinning: isLoading }">🔄</span>
         重试
       </button>
     </div>
 
     <!-- 系统状态面板 -->
-    <div v-else-if="selectedInstanceId && currentStatus.cpu > 0" class="status-panels">
+    <div
+      v-else-if="selectedInstanceId && currentStatus.cpu > 0"
+      class="status-panels"
+    >
       <!-- CPU状态卡片 -->
       <div class="status-card cpu">
         <div class="status-header">
@@ -89,7 +98,9 @@
         <div class="status-details">
           <div class="detail-item">
             <span class="detail-label">状态:</span>
-            <span class="detail-value" :class="getCpuStatus()">{{ getCpuStatusText() }}</span>
+            <span class="detail-value" :class="getCpuStatus()">{{
+              getCpuStatusText()
+            }}</span>
           </div>
         </div>
       </div>
@@ -110,11 +121,15 @@
         <div class="status-details">
           <div class="detail-item">
             <span class="detail-label">已使用:</span>
-            <span class="detail-value">{{ formatBytes(currentStatus.memoryUsed) }}</span>
+            <span class="detail-value">{{
+              formatBytes(currentStatus.memoryUsed)
+            }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">总内存:</span>
-            <span class="detail-value">{{ formatBytes(currentStatus.memoryTotal) }}</span>
+            <span class="detail-value">{{
+              formatBytes(currentStatus.memoryTotal)
+            }}</span>
           </div>
         </div>
       </div>
@@ -135,11 +150,15 @@
         <div class="status-details">
           <div class="detail-item">
             <span class="detail-label">已使用:</span>
-            <span class="detail-value">{{ formatBytes(currentStatus.diskUsed) }}</span>
+            <span class="detail-value">{{
+              formatBytes(currentStatus.diskUsed)
+            }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">总容量:</span>
-            <span class="detail-value">{{ formatBytes(currentStatus.diskTotal) }}</span>
+            <span class="detail-value">{{
+              formatBytes(currentStatus.diskTotal)
+            }}</span>
           </div>
         </div>
       </div>
@@ -154,17 +173,23 @@
           </div>
         </div>
         <div class="status-value">
-          <span class="main-value network-speed">{{ currentStatus.networkSpeed }}</span>
+          <span class="main-value network-speed">{{
+            currentStatus.networkSpeed
+          }}</span>
           <div class="status-indicator" :class="getNetworkStatus()"></div>
         </div>
         <div class="status-details">
           <div class="detail-item">
             <span class="detail-label">入站流量:</span>
-            <span class="detail-value">{{ formatBytes(currentStatus.networkRx) }}</span>
+            <span class="detail-value">{{
+              formatBytes(currentStatus.networkRx)
+            }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">出站流量:</span>
-            <span class="detail-value">{{ formatBytes(currentStatus.networkTx) }}</span>
+            <span class="detail-value">{{
+              formatBytes(currentStatus.networkTx)
+            }}</span>
           </div>
         </div>
       </div>
@@ -210,20 +235,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useInstanceStore } from '@/stores/instances'
-import { linodeAPI } from '@/services/linodeAPI'
-import AppNavigation from '@/components/AppNavigation.vue'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useInstanceStore } from "@/stores/instances";
+import { linodeAPI } from "@/services/linodeAPI";
+import AppNavigation from "@/components/AppNavigation.vue";
 
-const instanceStore = useInstanceStore()
+const instanceStore = useInstanceStore();
 
 // 响应式状态
-const selectedInstanceId = ref<number | ''>('')
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-const isAutoRefreshing = ref(false)
-const autoRefreshTimer = ref<NodeJS.Timeout | null>(null)
-const lastUpdateTime = ref<Date | null>(null)
+const selectedInstanceId = ref<number | "">("");
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const isAutoRefreshing = ref(false);
+const autoRefreshTimer = ref<ReturnType<typeof setInterval> | null>(null);
+const lastUpdateTime = ref<Date | null>(null);
 
 // 当前系统状态
 const currentStatus = ref({
@@ -234,142 +259,202 @@ const currentStatus = ref({
   diskPercent: 0,
   diskUsed: 0,
   diskTotal: 0,
-  networkSpeed: '0 KB/s',
+  networkSpeed: "0 KB/s",
   networkRx: 0,
   networkTx: 0,
-  uptime: '0天',
-  loadAverage: '0.00',
-  processes: 0
-})
+  uptime: "0天",
+  loadAverage: "0.00",
+  processes: 0,
+});
 
 // 组件挂载时初始化数据
 onMounted(async () => {
-  await instanceStore.loadInstances()
+  await instanceStore.loadInstances();
   if (instanceStore.instances.length > 0) {
-    selectedInstanceId.value = instanceStore.instances[0].id
-    await loadMonitoringData()
+    selectedInstanceId.value = instanceStore.instances[0].id;
+    await loadMonitoringData();
   }
-})
+});
 
 // 组件卸载时清理定时器
 onUnmounted(() => {
-  stopAutoRefresh()
-})
+  stopAutoRefresh();
+});
+
+// 获取本地系统真实监控数据
+const getLocalSystemMetrics = async () => {
+  try {
+    const response = await fetch('http://127.0.0.1:3002/metrics');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.warn('无法获取本地监控数据:', error.message);
+    throw error;
+  }
+};
 
 // 方法定义
 const loadMonitoringData = async () => {
-  if (!selectedInstanceId.value) return
+  if (!selectedInstanceId.value) return;
 
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
 
   try {
-    // 获取实例配置和监控数据
-    const [metricsData, instanceConfig] = await Promise.all([
-      linodeAPI.getSystemMetrics(selectedInstanceId.value as number),
-      linodeAPI.getInstanceConfig(selectedInstanceId.value as number)
-    ])
+    // 优先尝试获取本地真实系统数据
+    const localMetrics = await getLocalSystemMetrics();
+    currentStatus.value = {
+      cpu: localMetrics.cpu,
+      memoryPercent: localMetrics.memoryPercent,
+      memoryUsed: localMetrics.memoryUsed,
+      memoryTotal: localMetrics.memoryTotal,
+      diskPercent: localMetrics.diskPercent,
+      diskUsed: localMetrics.diskUsed,
+      diskTotal: localMetrics.diskTotal,
+      networkSpeed: localMetrics.networkSpeed,
+      networkRx: localMetrics.networkRx,
+      networkTx: localMetrics.networkTx,
+      uptime: localMetrics.uptime,
+      loadAverage: localMetrics.loadAverage,
+      processes: localMetrics.processes,
+    };
+    lastUpdateTime.value = new Date();
+    error.value = null;
+    return;
+  } catch (localErr: any) {
+    console.warn("本地监控服务不可用，尝试远程数据源");
     
-    const realStatus = parseLinodeStats(metricsData, instanceConfig)
-    currentStatus.value = realStatus
-    lastUpdateTime.value = new Date()
-    error.value = null
-  } catch (err: any) {
-    // 如果获取真实数据失败，尝试基础API
     try {
-      const basicStats = await linodeAPI.getInstanceStats(selectedInstanceId.value as number)
-      const basicStatus = parseBasicStats(basicStats)
-      currentStatus.value = basicStatus
-      lastUpdateTime.value = new Date()
-      error.value = '使用基础监控数据'
-    } catch (basicErr: any) {
-      console.error('无法获取监控数据:', basicErr.message)
-      error.value = `监控数据获取失败: ${basicErr.response?.data?.errors?.[0]?.reason || basicErr.message}`
-      currentStatus.value = {
-        cpu: 0,
-        memoryPercent: 0,
-        memoryUsed: 0,
-        memoryTotal: 0,
-        diskPercent: 0,
-        diskUsed: 0,
-        diskTotal: 0,
-        networkSpeed: '0 KB/s',
-        networkRx: 0,
-        networkTx: 0,
-        uptime: '未知',
-        loadAverage: '0.00',
-        processes: 0
+      // 备用方案：获取实例配置和监控数据
+      const [metricsData, instanceConfig] = await Promise.all([
+        linodeAPI.getSystemMetrics(selectedInstanceId.value as number),
+        linodeAPI.getInstanceConfig(selectedInstanceId.value as number),
+      ]);
+
+      const realStatus = parseLinodeStats(metricsData, instanceConfig);
+      currentStatus.value = realStatus;
+      lastUpdateTime.value = new Date();
+      error.value = "使用Linode API数据";
+    } catch {
+      // 最后备用方案：基础API
+      try {
+        const basicStats = await linodeAPI.getInstanceStats(
+          selectedInstanceId.value as number,
+        );
+        const basicStatus = parseBasicStats(basicStats);
+        currentStatus.value = basicStatus;
+        lastUpdateTime.value = new Date();
+        error.value = "使用基础监控数据";
+      } catch (basicErr: any) {
+        console.error("无法获取监控数据:", basicErr.message);
+        error.value = `监控数据获取失败: ${basicErr.response?.data?.errors?.[0]?.reason || basicErr.message}`;
+        currentStatus.value = {
+          cpu: 0,
+          memoryPercent: 0,
+          memoryUsed: 0,
+          memoryTotal: 0,
+          diskPercent: 0,
+          diskUsed: 0,
+          diskTotal: 0,
+          networkSpeed: "0 KB/s",
+          networkRx: 0,
+          networkTx: 0,
+          uptime: "未知",
+          loadAverage: "0.00",
+          processes: 0,
+        };
       }
     }
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 // 解析增强监控数据（使用真实配置信息）
 const parseLinodeStats = (metricsData: any, instanceConfig: any) => {
-  const stats = metricsData.stats?.data || metricsData.stats || {}
-  const transfer = metricsData.transfer || {}
-  
+  const stats = metricsData.stats?.data || metricsData.stats || {};
+  // const _transfer = metricsData.transfer || {};
+
   // 获取实例真实规格
-  const memoryMB = instanceConfig.specs?.memory || 8192 // 默认8GB
-  const diskGB = instanceConfig.specs?.disk || 51200 // 默认50GB
-  const vcpus = instanceConfig.specs?.vcpus || 2
-  
+  const memoryMB = instanceConfig.specs?.memory || 8192; // 默认8GB
+  const diskGB = instanceConfig.specs?.disk || 51200; // 默认50GB
+  const vcpus = instanceConfig.specs?.vcpus || 2;
+
   // CPU使用率 - 从最新数据点获取
-  const cpuData = stats.cpu || []
-  const latestCpu = cpuData.length > 0 ? cpuData[cpuData.length - 1] : [0, 0]
-  const cpu = Math.round(latestCpu[1] || 0)
-  
+  const cpuData = stats.cpu || [];
+  const latestCpu = cpuData.length > 0 ? cpuData[cpuData.length - 1] : [0, 0];
+  const cpu = Math.round(latestCpu[1] || 0);
+
   // 内存数据 - 使用真实规格
-  const memoryTotal = memoryMB * 1024 * 1024 // 转换为字节
+  const memoryTotal = memoryMB * 1024 * 1024; // 转换为字节
   // Linode API暂不提供内存使用率，基于CPU和历史模式估算
-  const memoryUsageRatio = Math.min(0.9, Math.max(0.1, (cpu / 100) * 0.8 + Math.random() * 0.2))
-  const memoryUsed = Math.round(memoryTotal * memoryUsageRatio)
-  const memoryPercent = Math.round((memoryUsed / memoryTotal) * 100)
-  
+  const memoryUsageRatio = Math.min(
+    0.9,
+    Math.max(0.1, (cpu / 100) * 0.8 + Math.random() * 0.2),
+  );
+  const memoryUsed = Math.round(memoryTotal * memoryUsageRatio);
+  const memoryPercent = Math.round((memoryUsed / memoryTotal) * 100);
+
   // 磁盘数据 - 使用真实规格
-  const diskTotal = diskGB * 1024 * 1024 // 转换为字节  
+  const diskTotal = diskGB * 1024 * 1024; // 转换为字节
   // 基于系统负载估算磁盘使用率
-  const diskUsageRatio = Math.min(0.95, Math.max(0.15, 0.3 + (cpu / 200) + Math.random() * 0.3))
-  const diskUsed = Math.round(diskTotal * diskUsageRatio)
-  const diskPercent = Math.round((diskUsed / diskTotal) * 100)
-  
+  const diskUsageRatio = Math.min(
+    0.95,
+    Math.max(0.15, 0.3 + cpu / 200 + Math.random() * 0.3),
+  );
+  const diskUsed = Math.round(diskTotal * diskUsageRatio);
+  const diskPercent = Math.round((diskUsed / diskTotal) * 100);
+
   // 网络数据 - 使用真实传输统计
-  const networkIO = stats.netv4 || {}
-  const inData = networkIO.in || []
-  const outData = networkIO.out || []
-  
+  const networkIO = stats.netv4 || {};
+  const inData = networkIO.in || [];
+  const outData = networkIO.out || [];
+
   // 计算最近的网络速度（取最后几个数据点的平均值）
-  const recentInData = inData.slice(-3)
-  const recentOutData = outData.slice(-3)
-  
-  const avgNetworkRx = recentInData.length > 0 
-    ? recentInData.reduce((sum: number, point: any[]) => sum + (point[1] || 0), 0) / recentInData.length
-    : 0
-  const avgNetworkTx = recentOutData.length > 0
-    ? recentOutData.reduce((sum: number, point: any[]) => sum + (point[1] || 0), 0) / recentOutData.length
-    : 0
-    
-  const networkRx = Math.round(avgNetworkRx)
-  const networkTx = Math.round(avgNetworkTx)
-  const networkSpeedKBps = Math.round((networkRx + networkTx) / 1024)
-  
+  const recentInData = inData.slice(-3);
+  const recentOutData = outData.slice(-3);
+
+  const avgNetworkRx =
+    recentInData.length > 0
+      ? recentInData.reduce(
+          (sum: number, point: any[]) => sum + (point[1] || 0),
+          0,
+        ) / recentInData.length
+      : 0;
+  const avgNetworkTx =
+    recentOutData.length > 0
+      ? recentOutData.reduce(
+          (sum: number, point: any[]) => sum + (point[1] || 0),
+          0,
+        ) / recentOutData.length
+      : 0;
+
+  const networkRx = Math.round(avgNetworkRx);
+  const networkTx = Math.round(avgNetworkTx);
+  const networkSpeedKBps = Math.round((networkRx + networkTx) / 1024);
+
   // 运行时间基于实例状态
-  const instanceStatus = instanceConfig.status || 'running'
-  const createdDate = new Date(instanceConfig.created || Date.now())
-  const now = new Date()
-  const diffMs = now.getTime() - createdDate.getTime()
-  const uptimeDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  const uptimeHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  
+  // const _instanceStatus = instanceConfig.status || "running";
+  const createdDate = new Date(instanceConfig.created || Date.now());
+  const now = new Date();
+  const diffMs = now.getTime() - createdDate.getTime();
+  const uptimeDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const uptimeHours = Math.floor(
+    (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+  );
+
   // 系统负载基于CPU核心数和当前使用率
-  const loadAvg = ((cpu / 100) * vcpus * (0.8 + Math.random() * 0.4)).toFixed(2)
-  
+  const loadAvg = ((cpu / 100) * vcpus * (0.8 + Math.random() * 0.4)).toFixed(
+    2,
+  );
+
   // 进程数基于内存使用情况估算
-  const baseProcesses = 30 + (vcpus * 15)
-  const processes = Math.round(baseProcesses + (memoryPercent / 100) * 100)
-  
+  const baseProcesses = 30 + vcpus * 15;
+  const processes = Math.round(baseProcesses + (memoryPercent / 100) * 100);
+
   return {
     cpu,
     memoryPercent,
@@ -378,45 +463,52 @@ const parseLinodeStats = (metricsData: any, instanceConfig: any) => {
     diskPercent,
     diskUsed,
     diskTotal,
-    networkSpeed: networkSpeedKBps > 1024 ? `${(networkSpeedKBps/1024).toFixed(1)} MB/s` : `${networkSpeedKBps} KB/s`,
+    networkSpeed:
+      networkSpeedKBps > 1024
+        ? `${(networkSpeedKBps / 1024).toFixed(1)} MB/s`
+        : `${networkSpeedKBps} KB/s`,
     networkRx,
     networkTx,
-    uptime: uptimeDays > 0 ? `${uptimeDays}天 ${uptimeHours}小时` : `${uptimeHours}小时`,
+    uptime:
+      uptimeDays > 0
+        ? `${uptimeDays}天 ${uptimeHours}小时`
+        : `${uptimeHours}小时`,
     loadAverage: loadAvg,
-    processes
-  }
-}
+    processes,
+  };
+};
 
 // 解析基础监控数据（备用方案）
 const parseBasicStats = (statsData: any) => {
-  const data = statsData.data || statsData
-  
+  const data = statsData.data || statsData;
+
   // CPU数据
-  const cpuData = data.cpu || []
-  const latestCpu = cpuData.length > 0 ? cpuData[cpuData.length - 1] : [0, 0]
-  const cpu = Math.round(latestCpu[1] || 0)
-  
+  const cpuData = data.cpu || [];
+  const latestCpu = cpuData.length > 0 ? cpuData[cpuData.length - 1] : [0, 0];
+  const cpu = Math.round(latestCpu[1] || 0);
+
   // 网络数据
-  const networkIO = data.netv4 || {}
-  const inData = networkIO.in || []
-  const outData = networkIO.out || []
-  
-  const networkRx = inData.length > 0 ? inData[inData.length - 1][1] || 0 : 0
-  const networkTx = outData.length > 0 ? outData[outData.length - 1][1] || 0 : 0
-  const networkSpeedKBps = Math.round((networkRx + networkTx) / 1024)
-  
+  const networkIO = data.netv4 || {};
+  const inData = networkIO.in || [];
+  const outData = networkIO.out || [];
+
+  const networkRx = inData.length > 0 ? inData[inData.length - 1][1] || 0 : 0;
+  const networkTx =
+    outData.length > 0 ? outData[outData.length - 1][1] || 0 : 0;
+  const networkSpeedKBps = Math.round((networkRx + networkTx) / 1024);
+
   // 基于真实CPU数据估算其他指标
-  const memoryTotal = 8 * 1024 * 1024 * 1024
-  const memoryUsed = Math.round(memoryTotal * ((cpu + 10) / 120))
-  const memoryPercent = Math.round((memoryUsed / memoryTotal) * 100)
-  
-  const diskTotal = 50 * 1024 * 1024 * 1024
-  const diskUsed = Math.round(diskTotal * (0.25 + cpu / 400))
-  const diskPercent = Math.round((diskUsed / diskTotal) * 100)
-  
-  const uptimeDays = Math.floor(Math.random() * 15) + 5
-  const uptimeHours = Math.floor(Math.random() * 24)
-  
+  const memoryTotal = 8 * 1024 * 1024 * 1024;
+  const memoryUsed = Math.round(memoryTotal * ((cpu + 10) / 120));
+  const memoryPercent = Math.round((memoryUsed / memoryTotal) * 100);
+
+  const diskTotal = 50 * 1024 * 1024 * 1024;
+  const diskUsed = Math.round(diskTotal * (0.25 + cpu / 400));
+  const diskPercent = Math.round((diskUsed / diskTotal) * 100);
+
+  const uptimeDays = Math.floor(Math.random() * 15) + 5;
+  const uptimeHours = Math.floor(Math.random() * 24);
+
   return {
     cpu,
     memoryPercent,
@@ -425,101 +517,102 @@ const parseBasicStats = (statsData: any) => {
     diskPercent,
     diskUsed,
     diskTotal,
-    networkSpeed: networkSpeedKBps > 1024 ? `${(networkSpeedKBps/1024).toFixed(1)} MB/s` : `${networkSpeedKBps} KB/s`,
+    networkSpeed:
+      networkSpeedKBps > 1024
+        ? `${(networkSpeedKBps / 1024).toFixed(1)} MB/s`
+        : `${networkSpeedKBps} KB/s`,
     networkRx,
     networkTx,
     uptime: `${uptimeDays}天 ${uptimeHours}小时`,
     loadAverage: ((cpu / 100) * 2 * (0.7 + Math.random() * 0.6)).toFixed(2),
-    processes: Math.round(50 + (cpu / 100) * 150 + Math.random() * 50)
-  }
-}
-
-
+    processes: Math.round(50 + (cpu / 100) * 150 + Math.random() * 50),
+  };
+};
 
 const handleRefresh = () => {
-  loadMonitoringData()
-}
+  loadMonitoringData();
+};
 
 const toggleAutoRefresh = () => {
   if (isAutoRefreshing.value) {
-    stopAutoRefresh()
+    stopAutoRefresh();
   } else {
-    startAutoRefresh()
+    startAutoRefresh();
   }
-}
+};
 
 const startAutoRefresh = () => {
-  stopAutoRefresh()
-  isAutoRefreshing.value = true
+  stopAutoRefresh();
+  isAutoRefreshing.value = true;
   autoRefreshTimer.value = setInterval(() => {
     if (!isLoading.value) {
-      loadMonitoringData()
+      loadMonitoringData();
     }
-  }, 30000) // 30秒刷新一次
-}
+  }, 30000); // 30秒刷新一次
+};
 
 const stopAutoRefresh = () => {
   if (autoRefreshTimer.value) {
-    clearInterval(autoRefreshTimer.value)
-    autoRefreshTimer.value = null
+    clearInterval(autoRefreshTimer.value);
+    autoRefreshTimer.value = null;
   }
-  isAutoRefreshing.value = false
-}
+  isAutoRefreshing.value = false;
+};
 
 // 状态判断方法
 const getCpuStatus = () => {
-  const cpu = currentStatus.value.cpu
-  if (cpu < 30) return 'healthy'
-  if (cpu < 70) return 'warning'
-  return 'critical'
-}
+  const cpu = currentStatus.value.cpu;
+  if (cpu < 30) return "healthy";
+  if (cpu < 70) return "warning";
+  return "critical";
+};
 
 const getCpuStatusText = () => {
-  const cpu = currentStatus.value.cpu
-  if (cpu < 30) return '正常'
-  if (cpu < 70) return '警告'
-  return '严重'
-}
+  const cpu = currentStatus.value.cpu;
+  if (cpu < 30) return "正常";
+  if (cpu < 70) return "警告";
+  return "严重";
+};
 
 const getMemoryStatus = () => {
-  const memory = currentStatus.value.memoryPercent
-  if (memory < 60) return 'healthy'
-  if (memory < 80) return 'warning'
-  return 'critical'
-}
+  const memory = currentStatus.value.memoryPercent;
+  if (memory < 60) return "healthy";
+  if (memory < 80) return "warning";
+  return "critical";
+};
 
 const getDiskStatus = () => {
-  const disk = currentStatus.value.diskPercent
-  if (disk < 70) return 'healthy'
-  if (disk < 85) return 'warning'
-  return 'critical'
-}
+  const disk = currentStatus.value.diskPercent;
+  if (disk < 70) return "healthy";
+  if (disk < 85) return "warning";
+  return "critical";
+};
 
 const getNetworkStatus = () => {
-  return 'healthy' // 网络状态通常显示为正常
-}
+  return "healthy"; // 网络状态通常显示为正常
+};
 
 const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
-}
+  if (bytes === 0) return "0 B";
+
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+};
 
 const formatDate = (dateString: string): string => {
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
+  const date = new Date(dateString);
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
 </script>
 
 <style scoped>
@@ -528,7 +621,11 @@ const formatDate = (dateString: string): string => {
   max-width: 1400px;
   margin: 0 auto;
   min-height: 100vh;
-  background: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(55, 131, 220, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.92) 0%,
+    rgba(55, 131, 220, 0.08) 100%
+  );
   backdrop-filter: blur(10px);
 }
 
@@ -596,8 +693,12 @@ const formatDate = (dateString: string): string => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .auto-refresh-btn {
@@ -626,8 +727,15 @@ const formatDate = (dateString: string): string => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 .time-range-select {
@@ -898,8 +1006,15 @@ const formatDate = (dateString: string): string => {
 }
 
 @keyframes pulse-indicator {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 .status-details {
@@ -956,22 +1071,22 @@ const formatDate = (dateString: string): string => {
     align-items: stretch;
     gap: 16px;
   }
-  
+
   .header-actions {
     justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
   }
-  
+
   .status-panels {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .status-card {
     padding: 16px;
   }
-  
+
   .status-details {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -983,44 +1098,44 @@ const formatDate = (dateString: string): string => {
   .monitoring-container {
     padding: 12px;
   }
-  
+
   .header-actions {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .header-actions button {
     padding: 8px 12px;
     font-size: 13px;
   }
-  
+
   .instance-selector {
     padding: 16px;
     margin-bottom: 16px;
   }
-  
+
   .instance-selector select {
     max-width: none;
     padding: 10px 12px;
     font-size: 14px;
   }
-  
+
   .status-card {
     padding: 12px;
   }
-  
+
   .status-title h3 {
     font-size: 16px;
   }
-  
+
   .main-value {
     font-size: 24px;
   }
-  
+
   .main-value.network-speed {
     font-size: 18px;
   }
-  
+
   /* iPhone X系列安全区域适配 */
   .monitoring-container {
     padding-left: max(12px, env(safe-area-inset-left));
@@ -1034,17 +1149,17 @@ const formatDate = (dateString: string): string => {
   .monitoring-container {
     padding: 8px;
   }
-  
+
   .status-card {
     padding: 10px;
   }
-  
+
   .status-icon {
     width: 32px;
     height: 32px;
     font-size: 18px;
   }
-  
+
   .main-value {
     font-size: 20px;
   }

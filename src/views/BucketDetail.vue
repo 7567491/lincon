@@ -2,7 +2,9 @@
   <div class="bucket-detail-container">
     <div class="header">
       <h1>存储桶详情</h1>
-      <p class="subtitle">{{ $route.params.cluster }}/{{ $route.params.bucket }}</p>
+      <p class="subtitle">
+        {{ $route.params.cluster }}/{{ $route.params.bucket }}
+      </p>
     </div>
 
     <div class="development-notice">

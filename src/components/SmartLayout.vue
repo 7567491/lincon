@@ -5,12 +5,12 @@
     <div v-if="deviceInfo.isIPhone" class="iphone-native-layout">
       <!-- 状态栏安全区域 -->
       <div class="safe-area-top"></div>
-      
+
       <!-- 应用内容 -->
       <div class="native-content">
         <slot />
       </div>
-      
+
       <!-- 底部安全区域（iPhone X系列的Home indicator区域） -->
       <div class="safe-area-bottom"></div>
     </div>
@@ -20,14 +20,14 @@
       <iPhoneFrame v-if="showFrame">
         <slot />
       </iPhoneFrame>
-      
+
       <!-- 可选：移动端但非iPhone的设备，提供简洁布局 -->
       <div v-else-if="deviceInfo.isMobile" class="mobile-layout">
         <div class="mobile-content">
           <slot />
         </div>
       </div>
-      
+
       <!-- 桌面端显示带边框的预览 -->
       <div v-else class="desktop-content">
         <iPhoneFrame>
@@ -39,62 +39,62 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useDeviceDetection } from '@/utils/deviceDetector'
-import iPhoneFrame from '@/components/iPhoneFrame.vue'
+import { computed, onMounted } from "vue";
+import { useDeviceDetection } from "@/utils/deviceDetector";
+import iPhoneFrame from "@/components/iPhoneFrame.vue";
 
 interface Props {
   // 是否强制显示边框（用于开发调试）
-  forceShowFrame?: boolean
+  forceShowFrame?: boolean;
   // 是否强制隐藏边框
-  forceHideFrame?: boolean
+  forceHideFrame?: boolean;
   // 自定义布局模式
-  layoutMode?: 'auto' | 'native' | 'frame' | 'mobile'
+  layoutMode?: "auto" | "native" | "frame" | "mobile";
 }
 
 const props = withDefaults(defineProps<Props>(), {
   forceShowFrame: false,
   forceHideFrame: false,
-  layoutMode: 'auto'
-})
+  layoutMode: "auto",
+});
 
-const { deviceInfo } = useDeviceDetection()
+const { deviceInfo } = useDeviceDetection();
 
 // 计算是否显示iPhone边框
 const showFrame = computed(() => {
-  if (props.forceShowFrame) return true
-  if (props.forceHideFrame) return false
-  
+  if (props.forceShowFrame) return true;
+  if (props.forceHideFrame) return false;
+
   switch (props.layoutMode) {
-    case 'native':
-      return false
-    case 'frame':
-      return true
-    case 'mobile':
-      return false
-    case 'auto':
+    case "native":
+      return false;
+    case "frame":
+      return true;
+    case "mobile":
+      return false;
+    case "auto":
     default:
       // 自动模式：iPhone真机不显示边框，其他设备显示
-      return !deviceInfo.value.isIPhone
+      return !deviceInfo.value.isIPhone;
   }
-})
+});
 
 // 动态CSS类
 const layoutClasses = computed(() => ({
-  'is-iphone': deviceInfo.value.isIPhone,
-  'is-mobile': deviceInfo.value.isMobile,
-  'is-desktop': deviceInfo.value.isDesktop,
-  'show-frame': showFrame.value,
-  'hide-frame': !showFrame.value
-}))
+  "is-iphone": deviceInfo.value.isIPhone,
+  "is-mobile": deviceInfo.value.isMobile,
+  "is-desktop": deviceInfo.value.isDesktop,
+  "show-frame": showFrame.value,
+  "hide-frame": !showFrame.value,
+}));
 
 // 开发环境下的调试信息
 onMounted(() => {
   if (import.meta.env.DEV) {
-    console.log('SmartLayout Device Info:', deviceInfo.value)
-    console.log('Show Frame:', showFrame.value)
+    console.log("SmartLayout Device Info:", deviceInfo.value);
+    console.log("Show Frame:", showFrame.value);
   }
-})
+});
 </script>
 
 <style scoped>
@@ -155,7 +155,8 @@ onMounted(() => {
 .mobile-content {
   min-height: 100vh;
   overflow-y: auto;
-  padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 16px);
+  padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 16px)
+    env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 16px);
 }
 
 .desktop-content {
@@ -174,7 +175,7 @@ onMounted(() => {
   .safe-area-top {
     height: env(safe-area-inset-top, 0px);
   }
-  
+
   .safe-area-bottom {
     height: env(safe-area-inset-bottom, 21px);
   }
@@ -185,7 +186,7 @@ onMounted(() => {
   .iphone-native-layout {
     background: var(--bg-primary-dark, #1a1a1a);
   }
-  
+
   .mobile-layout {
     background: var(--bg-primary-dark, #1a1a1a);
   }

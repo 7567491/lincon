@@ -57,12 +57,12 @@
   background: #1a1a1a;
   border-radius: 40px;
   padding: 2px;
-  box-shadow: 
+  box-shadow:
     0 0 0 1px #333,
     0 0 0 3px #555,
     0 0 0 6px #777,
-    0 30px 80px rgba(0,0,0,0.6),
-    inset 0 0 0 1px rgba(255,255,255,0.1);
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(20px);
@@ -70,26 +70,32 @@
 
 /* 新增：iPhone边框光效 */
 .iphone-border::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, 
-    rgba(59, 130, 246, 0.3) 0%, 
-    rgba(147, 51, 234, 0.3) 25%, 
-    rgba(16, 185, 129, 0.3) 50%, 
-    rgba(59, 130, 246, 0.3) 75%, 
-    rgba(147, 51, 234, 0.3) 100%);
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.3) 0%,
+    rgba(147, 51, 234, 0.3) 25%,
+    rgba(16, 185, 129, 0.3) 50%,
+    rgba(59, 130, 246, 0.3) 75%,
+    rgba(147, 51, 234, 0.3) 100%
+  );
   border-radius: 42px;
   z-index: -1;
   animation: borderGlow 3s ease-in-out infinite alternate;
 }
 
 @keyframes borderGlow {
-  0% { opacity: 0.3; }
-  100% { opacity: 0.8; }
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.8;
+  }
 }
 
 .status-bar {
@@ -174,10 +180,18 @@
   box-shadow: 0 0 4px rgba(16, 185, 129, 0.3);
 }
 
-.bar:nth-child(1) { height: 4px; }
-.bar:nth-child(2) { height: 6px; }
-.bar:nth-child(3) { height: 8px; }
-.bar:nth-child(4) { height: 10px; }
+.bar:nth-child(1) {
+  height: 4px;
+}
+.bar:nth-child(2) {
+  height: 6px;
+}
+.bar:nth-child(3) {
+  height: 8px;
+}
+.bar:nth-child(4) {
+  height: 10px;
+}
 
 .wifi-icon {
   font-size: 14px;
@@ -195,7 +209,7 @@
 }
 
 .battery::after {
-  content: '';
+  content: "";
   position: absolute;
   right: -4px;
   top: 3px;
@@ -215,8 +229,12 @@
 }
 
 @keyframes batteryPulse {
-  0% { opacity: 0.8; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .app-content {
@@ -230,16 +248,18 @@
 
 /* 新增：app内容区域渐变边框 */
 .app-content::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(59, 130, 246, 0.3) 50%, 
-    transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.3) 50%,
+    transparent 100%
+  );
 }
 
 .home-indicator {
@@ -260,7 +280,7 @@
   .iphone-frame {
     padding: 10px;
   }
-  
+
   .iphone-border {
     width: calc(100vw - 20px);
     height: calc(100vh - 20px);
@@ -273,12 +293,12 @@
   .iphone-frame {
     padding: 5px;
   }
-  
+
   .iphone-border {
     height: calc(100vh - 10px);
     max-height: 812px;
   }
-  
+
   .app-content {
     height: calc(100vh - 10px - 44px - 34px - 4px);
   }
@@ -288,18 +308,18 @@
 @media (prefers-color-scheme: dark) {
   .iphone-border {
     background: #0a0a0a;
-    box-shadow: 
+    box-shadow:
       0 0 0 1px #444,
       0 0 0 3px #666,
       0 0 0 6px #888,
-      0 30px 80px rgba(0,0,0,0.8),
-      inset 0 0 0 1px rgba(255,255,255,0.15);
+      0 30px 80px rgba(0, 0, 0, 0.8),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   }
-  
+
   .notch {
     background: #0a0a0a;
   }
-  
+
   .home-indicator {
     background: rgba(255, 255, 255, 0.6);
   }

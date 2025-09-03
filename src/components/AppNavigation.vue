@@ -1,17 +1,29 @@
 <template>
   <nav class="app-navigation">
     <div class="nav-links">
-      <router-link to="/instances" class="nav-link" :class="{ active: $route.path.startsWith('/instances') }">
+      <router-link
+        to="/instances"
+        class="nav-link"
+        :class="{ active: $route.path.startsWith('/instances') }"
+      >
         <span class="nav-icon">🖥️</span>
         <span class="nav-text">实例</span>
       </router-link>
-      
-      <router-link to="/buckets" class="nav-link" :class="{ active: $route.path.startsWith('/buckets') }">
+
+      <router-link
+        to="/buckets"
+        class="nav-link"
+        :class="{ active: $route.path.startsWith('/buckets') }"
+      >
         <span class="nav-icon">🪣</span>
         <span class="nav-text">存储</span>
       </router-link>
-      
-      <router-link to="/monitoring" class="nav-link" :class="{ active: $route.path.startsWith('/monitoring') }">
+
+      <router-link
+        to="/monitoring"
+        class="nav-link"
+        :class="{ active: $route.path.startsWith('/monitoring') }"
+      >
         <span class="nav-icon">📊</span>
         <span class="nav-text">监控</span>
       </router-link>
@@ -61,7 +73,11 @@
 
 .nav-link.active {
   color: #ffffff;
-  background: linear-gradient(135deg, rgba(55, 131, 220, 0.3), rgba(0, 176, 79, 0.2));
+  background: linear-gradient(
+    135deg,
+    rgba(55, 131, 220, 0.3),
+    rgba(0, 176, 79, 0.2)
+  );
   border: 1px solid rgba(55, 131, 220, 0.4);
   box-shadow: 0 2px 8px rgba(55, 131, 220, 0.2);
 }
@@ -81,13 +97,13 @@
   .nav-text {
     display: none;
   }
-  
+
   .nav-link {
     flex-direction: column;
     gap: 4px;
     padding: 12px 8px;
   }
-  
+
   .nav-icon {
     font-size: 20px;
   }
@@ -97,7 +113,7 @@
   .nav-links {
     gap: 2px;
   }
-  
+
   .nav-link {
     padding: 10px 6px;
   }

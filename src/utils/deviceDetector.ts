@@ -1,12 +1,12 @@
 // src/utils/deviceDetector.ts
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from "vue";
 
 export interface DeviceInfo {
   isIPhone: boolean;
-  isAndroid: boolean; 
+  isAndroid: boolean;
   isMobile: boolean;
   isDesktop: boolean;
-  deviceType: 'iphone' | 'android' | 'mobile' | 'desktop';
+  deviceType: "iphone" | "android" | "mobile" | "desktop";
   screenSize: {
     width: number;
     height: number;
@@ -29,26 +29,26 @@ export function detectDevice(): DeviceInfo {
   const screenHeight = window.innerHeight;
 
   // 更精确的iPhone检测
-  const isIPhoneByScreen = isIPhone && (
+  const isIPhoneByScreen =
+    isIPhone &&
     // iPhone各型号典型分辨率检测
-    (screenWidth === 375 && screenHeight === 667) || // iPhone 6/7/8
-    (screenWidth === 414 && screenHeight === 736) || // iPhone 6/7/8 Plus
-    (screenWidth === 375 && screenHeight === 812) || // iPhone X/XS/11 Pro
-    (screenWidth === 414 && screenHeight === 896) || // iPhone XR/11/12/13
-    (screenWidth === 390 && screenHeight === 844) || // iPhone 12/13 mini
-    (screenWidth === 393 && screenHeight === 852) || // iPhone 14
-    (screenWidth === 430 && screenHeight === 932) || // iPhone 14 Plus/Pro Max
-    // 通用iPhone特征检测
-    (isIPhone && screenWidth <= 430 && screenHeight <= 960)
-  );
+    ((screenWidth === 375 && screenHeight === 667) || // iPhone 6/7/8
+      (screenWidth === 414 && screenHeight === 736) || // iPhone 6/7/8 Plus
+      (screenWidth === 375 && screenHeight === 812) || // iPhone X/XS/11 Pro
+      (screenWidth === 414 && screenHeight === 896) || // iPhone XR/11/12/13
+      (screenWidth === 390 && screenHeight === 844) || // iPhone 12/13 mini
+      (screenWidth === 393 && screenHeight === 852) || // iPhone 14
+      (screenWidth === 430 && screenHeight === 932) || // iPhone 14 Plus/Pro Max
+      // 通用iPhone特征检测
+      (isIPhone && screenWidth <= 430 && screenHeight <= 960));
 
-  let deviceType: DeviceInfo['deviceType'] = 'desktop';
+  let deviceType: DeviceInfo["deviceType"] = "desktop";
   if (isIPhoneByScreen) {
-    deviceType = 'iphone';
+    deviceType = "iphone";
   } else if (isAndroid) {
-    deviceType = 'android';
+    deviceType = "android";
   } else if (isMobile) {
-    deviceType = 'mobile';
+    deviceType = "mobile";
   }
 
   return {
@@ -59,8 +59,8 @@ export function detectDevice(): DeviceInfo {
     deviceType,
     screenSize: {
       width: screenWidth,
-      height: screenHeight
-    }
+      height: screenHeight,
+    },
   };
 }
 
@@ -75,13 +75,13 @@ export function useDeviceDetection() {
   };
 
   onMounted(() => {
-    window.addEventListener('resize', updateDeviceInfo);
-    window.addEventListener('orientationchange', updateDeviceInfo);
+    window.addEventListener("resize", updateDeviceInfo);
+    window.addEventListener("orientationchange", updateDeviceInfo);
   });
 
   onUnmounted(() => {
-    window.removeEventListener('resize', updateDeviceInfo);
-    window.removeEventListener('orientationchange', updateDeviceInfo);
+    window.removeEventListener("resize", updateDeviceInfo);
+    window.removeEventListener("orientationchange", updateDeviceInfo);
   });
 
   return {
@@ -90,7 +90,7 @@ export function useDeviceDetection() {
     isMobile: computed(() => deviceInfo.value.isMobile),
     isDesktop: computed(() => deviceInfo.value.isDesktop),
     deviceType: computed(() => deviceInfo.value.deviceType),
-    screenSize: computed(() => deviceInfo.value.screenSize)
+    screenSize: computed(() => deviceInfo.value.screenSize),
   };
 }
 
@@ -102,7 +102,7 @@ export const breakpoints = {
   md: 768,
   lg: 1024,
   xl: 1280,
-  '2xl': 1536
+  "2xl": 1536,
 };
 
 export function isScreenSize(size: keyof typeof breakpoints): boolean {
