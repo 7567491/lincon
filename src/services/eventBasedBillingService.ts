@@ -16,33 +16,55 @@ import type {
 export class EventBasedBillingService {
   private readonly PRICING_KEY = "billing_pricing_v2";
   
-  // 默认定价配置（与官方定价一致）
+  // 使用最新的API价格数据（2025.09.03更新）
   private readonly defaultPricing: PricingConfig = {
     instances: {
       "g6-nanode-1": { hourly: 0.0075, monthly: 5 },
-      "g6-standard-1": { hourly: 0.015, monthly: 10 },
-      "g6-standard-2": { hourly: 0.03, monthly: 20 },
-      "g6-standard-4": { hourly: 0.06, monthly: 40 },
-      "g6-standard-6": { hourly: 0.12, monthly: 80 },
-      "g6-standard-8": { hourly: 0.24, monthly: 160 },
-      "g6-dedicated-2": { hourly: 0.045, monthly: 30 },
-      "g6-dedicated-4": { hourly: 0.09, monthly: 60 },
-      "g6-dedicated-8": { hourly: 0.18, monthly: 120 },
-      "g6-dedicated-16": { hourly: 0.36, monthly: 240 },
-      "g6-highmem-1": { hourly: 0.09, monthly: 60 },
-      "g6-highmem-2": { hourly: 0.18, monthly: 120 },
-      "g6-highmem-4": { hourly: 0.36, monthly: 240 },
-      "g6-highmem-8": { hourly: 0.72, monthly: 480 },
+      "g6-standard-1": { hourly: 0.018, monthly: 12 },
+      "g6-standard-2": { hourly: 0.036, monthly: 24 },
+      "g6-standard-4": { hourly: 0.072, monthly: 48 },
+      "g6-standard-6": { hourly: 0.144, monthly: 96 },
+      "g6-standard-8": { hourly: 0.288, monthly: 192 },
+      "g6-standard-16": { hourly: 0.576, monthly: 384 },
+      "g6-standard-20": { hourly: 0.864, monthly: 576 },
+      "g6-standard-24": { hourly: 1.152, monthly: 768 },
+      "g6-standard-32": { hourly: 1.728, monthly: 1152 },
+      "g6-dedicated-2": { hourly: 0.054, monthly: 36 },
+      "g6-dedicated-4": { hourly: 0.108, monthly: 72 },
+      "g6-dedicated-8": { hourly: 0.216, monthly: 144 },
+      "g6-dedicated-16": { hourly: 0.432, monthly: 288 },
+      "g6-dedicated-32": { hourly: 0.864, monthly: 576 },
+      "g7-highmem-1": { hourly: 0.09, monthly: 60 },
+      "g7-highmem-2": { hourly: 0.18, monthly: 120 },
+      "g7-highmem-4": { hourly: 0.36, monthly: 240 },
+      "g7-highmem-8": { hourly: 0.72, monthly: 480 },
+      "g7-highmem-16": { hourly: 1.44, monthly: 960 },
     },
     objectStorage: {
       baseFee: 5,
       transferCost: 0.01,
     },
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: "2025-09-03T14:46:48.840Z",
   };
 
   constructor() {
     this.initializePricing();
+    // 强制更新到最新价格（2025.09.03）
+    this.updatePricingToLatest();
+  }
+
+  /**
+   * 强制更新到最新价格数据
+   */
+  private updatePricingToLatest(): void {
+    const currentPricing = this.getPricing();
+    const latestUpdate = "2025-09-03T14:46:48.840Z";
+    
+    // 如果当前价格数据比最新更新时间旧，就强制更新
+    if (!currentPricing.lastUpdated || currentPricing.lastUpdated < latestUpdate) {
+      console.log('🔄 更新EventBasedBillingService价格数据到最新版本');
+      localStorage.setItem(this.PRICING_KEY, JSON.stringify(this.defaultPricing));
+    }
   }
 
   /**
@@ -229,16 +251,14 @@ export class EventBasedBillingService {
 
     if (!instancePricing) {
       console.warn(`未知实例类型 ${instanceType}，使用默认定价`);
-      return durationHours * 0.06; // 默认 g6-standard-4 的费用
+      return durationHours * 0.072; // 默认 g6-standard-4 的更新费用
     }
 
-    let cost = durationHours * instancePricing.hourly;
+    // 按小时计费，Linode的月封顶保护是按月计算的，而不是每天
+    // 这里直接按小时费用计算即可
+    const cost = durationHours * instancePricing.hourly;
     
-    // 应用月封顶保护（简化版本，实际应按月计算）
-    const maxDailyCost = instancePricing.monthly / 30; // 日最大费用
-    const dailyCost = Math.min(cost, maxDailyCost);
-    
-    return dailyCost;
+    return cost;
   }
 
   /**
@@ -347,7 +367,7 @@ export class EventBasedBillingService {
   }
 
   /**
-   * 添加对象存储费用（简化为固定费用）
+   * 添加对象存储费用（按日正确分摊）
    */
   private addStorageCosts(dailyCosts: Map<string, DailyCost>): void {
     const pricing = this.getPricing();
@@ -356,6 +376,15 @@ export class EventBasedBillingService {
     dailyCosts.forEach(dailyCost => {
       dailyCost.storageCost = dailyStorageCost;
       dailyCost.totalCost += dailyStorageCost;
+      
+      // 添加存储费用明细
+      dailyCost.details.push({
+        resourceId: "object-storage",
+        resourceLabel: "Object Storage",
+        resourceType: "object-storage",
+        cost: dailyStorageCost,
+        hours: 24,
+      });
     });
   }
 

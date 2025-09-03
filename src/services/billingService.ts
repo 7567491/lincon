@@ -5,63 +5,106 @@ import type {
   CostSummary,
   PricingConfig,
 } from "@/types";
+import { linodePricingService } from "@/services/linodePricingService";
 
 export class BillingService {
   private readonly STORAGE_KEY = "billing_logs";
   private readonly PRICING_KEY = "billing_pricing";
 
-  // 默认定价配置
-  private readonly defaultPricing: PricingConfig = {
-    instances: {
-      "g6-nanode-1": { hourly: 0.0075, monthly: 5 },
-      "g6-standard-1": { hourly: 0.015, monthly: 10 },
-      "g6-standard-2": { hourly: 0.03, monthly: 20 },
-      "g6-standard-4": { hourly: 0.06, monthly: 40 },
-      "g6-standard-6": { hourly: 0.12, monthly: 80 },
-      "g6-standard-8": { hourly: 0.24, monthly: 160 },
-      "g6-dedicated-2": { hourly: 0.045, monthly: 30 },
-      "g6-dedicated-4": { hourly: 0.09, monthly: 60 },
-      "g6-dedicated-8": { hourly: 0.18, monthly: 120 },
-      "g6-dedicated-16": { hourly: 0.36, monthly: 240 },
-      "g6-highmem-1": { hourly: 0.09, monthly: 60 },
-      "g6-highmem-2": { hourly: 0.18, monthly: 120 },
-      "g6-highmem-4": { hourly: 0.36, monthly: 240 },
-      "g6-highmem-8": { hourly: 0.72, monthly: 480 },
-    },
-    objectStorage: {
-      baseFee: 5, // $5/月基础费用
-      transferCost: 0.01, // $0.01/GB超出配额后
-    },
-    lastUpdated: new Date().toISOString(),
-  };
+  // 定价数据缓存
+  private cachedPricingConfig: PricingConfig | null = null;
+  private pricingCacheTime: number = 0;
+  private readonly PRICING_CACHE_DURATION = 60 * 60 * 1000; // 1小时缓存
 
   // 测试用数据
   private mockLogs: ResourceStateLog[] = [];
   private mockDailyCosts: DailyCost[] = [];
 
   constructor() {
-    this.initializePricing();
+    // 异步初始化定价数据，不在构造函数中等待
+    this.initializePricing().catch(error => {
+      console.warn('初始化定价数据失败，将使用降级方案:', error);
+    });
   }
 
   /**
-   * 初始化定价配置
+   * 异步初始化定价配置
    */
-  private initializePricing(): void {
-    const saved = localStorage.getItem(this.PRICING_KEY);
-    if (!saved) {
-      localStorage.setItem(
-        this.PRICING_KEY,
-        JSON.stringify(this.defaultPricing),
-      );
+  private async initializePricing(): Promise<void> {
+    try {
+      const pricingConfig = await linodePricingService.getPricingConfig();
+      this.cachedPricingConfig = pricingConfig;
+      this.pricingCacheTime = Date.now();
+      
+      // 保存到localStorage作为备份
+      localStorage.setItem(this.PRICING_KEY, JSON.stringify(pricingConfig));
+      
+      console.log('✅ Billing Service: 定价数据已从JSON文件加载');
+    } catch (error) {
+      console.warn('❌ Billing Service: 从JSON加载定价数据失败:', error);
+      // 尝试从localStorage加载备份
+      this.loadPricingFromBackup();
     }
   }
 
   /**
-   * 获取定价配置
+   * 获取定价配置（异步，支持缓存）
    */
-  private getPricing(): PricingConfig {
-    const saved = localStorage.getItem(this.PRICING_KEY);
-    return saved ? JSON.parse(saved) : this.defaultPricing;
+  private async getPricing(): Promise<PricingConfig> {
+    // 检查缓存是否有效
+    if (this.cachedPricingConfig && 
+        (Date.now() - this.pricingCacheTime) < this.PRICING_CACHE_DURATION) {
+      return this.cachedPricingConfig;
+    }
+    
+    try {
+      // 从定价服务获取最新数据
+      const pricingConfig = await linodePricingService.getPricingConfig();
+      this.cachedPricingConfig = pricingConfig;
+      this.pricingCacheTime = Date.now();
+      return pricingConfig;
+    } catch (error) {
+      console.warn('获取最新定价数据失败，使用备份:', error);
+      
+      // 如果有缓存，使用过期的缓存
+      if (this.cachedPricingConfig) {
+        return this.cachedPricingConfig;
+      }
+      
+      // 最后尝试从localStorage加载
+      return this.loadPricingFromBackup();
+    }
+  }
+  
+  /**
+   * 从localStorage备份加载定价数据
+   */
+  private loadPricingFromBackup(): PricingConfig {
+    try {
+      const saved = localStorage.getItem(this.PRICING_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        console.log('📂 使用localStorage备份定价数据');
+        return parsed;
+      }
+    } catch (error) {
+      console.warn('读取定价数据备份失败:', error);
+    }
+    
+    // 最终降级方案
+    console.warn('🔄 使用最小化降级定价数据');
+    return {
+      instances: {
+        "g6-nanode-1": { hourly: 0.0075, monthly: 5 },
+        "g6-standard-1": { hourly: 0.015, monthly: 10 },
+        "g6-standard-2": { hourly: 0.03, monthly: 20 },
+      },
+      objectStorage: {
+        baseFee: 5,
+        transferCost: 0.01,
+      },
+      lastUpdated: new Date().toISOString(),
+    };
   }
 
   /**
@@ -144,23 +187,51 @@ export class BillingService {
   }
 
   /**
-   * 计算实例费用
+   * 计算实例费用（异步）
    */
-  calculateInstanceCost(
+  async calculateInstanceCost(
     instanceType: string,
     startTime: Date,
     endTime: Date,
-  ): { duration: number; cost: number; hourlyRate: number } {
-    const pricing = this.getPricing();
+  ): Promise<{ duration: number; cost: number; hourlyRate: number }> {
+    const pricing = await this.getPricing();
     const instancePricing = pricing.instances[instanceType];
 
     if (!instancePricing) {
+      console.warn(`未知实例类型: ${instanceType}，尝试直接查询JSON数据`);
+      
+      // 尝试从JSON数据中直接查询
+      try {
+        const instanceTypeData = await linodePricingService.getInstancePricing(instanceType);
+        if (instanceTypeData) {
+          const directPricing = {
+            hourly: instanceTypeData.pricing.hourly,
+            monthly: instanceTypeData.pricing.monthly,
+          };
+          return this.performCostCalculation(instanceType, startTime, endTime, directPricing);
+        }
+      } catch (error) {
+        console.warn(`从JSON数据查询实例类型 ${instanceType} 失败:`, error);
+      }
+      
       throw new Error(`Unknown instance type: ${instanceType}`);
     }
 
+    return this.performCostCalculation(instanceType, startTime, endTime, instancePricing);
+  }
+
+  /**
+   * 执行费用计算逻辑
+   */
+  private performCostCalculation(
+    instanceType: string,
+    startTime: Date,
+    endTime: Date,
+    pricing: { hourly: number; monthly: number }
+  ): { duration: number; cost: number; hourlyRate: number } {
     const duration =
       (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // 小时
-    let cost = duration * instancePricing.hourly;
+    let cost = duration * pricing.hourly;
 
     // 应用月封顶保护 - Linode按月收费封顶
     const startMonth = `${startTime.getFullYear()}-${String(startTime.getMonth() + 1).padStart(2, "0")}`;
@@ -168,24 +239,24 @@ export class BillingService {
 
     if (startMonth === endMonth) {
       // 同一个月内，最多收取月费
-      cost = Math.min(cost, instancePricing.monthly);
+      cost = Math.min(cost, pricing.monthly);
     }
 
     return {
       duration,
       cost,
-      hourlyRate: instancePricing.hourly,
+      hourlyRate: pricing.hourly,
     };
   }
 
   /**
-   * 计算跨月费用
+   * 计算跨月费用（异步）
    */
-  calculateCrossMonthCost(
+  async calculateCrossMonthCost(
     instanceType: string,
     startTime: Date,
     endTime: Date,
-  ): Array<{ month: string; cost: number; duration: number }> {
+  ): Promise<Array<{ month: string; cost: number; duration: number }>> {
     const results: Array<{ month: string; cost: number; duration: number }> =
       [];
 
@@ -207,7 +278,7 @@ export class BillingService {
         Math.min(monthEnd.getTime(), endTime.getTime()),
       );
 
-      const costData = this.calculateInstanceCost(
+      const costData = await this.calculateInstanceCost(
         instanceType,
         currentStart,
         currentEnd,
@@ -393,7 +464,7 @@ export class BillingService {
       );
 
       if (dayStart < dayEnd) {
-        const costData = this.calculateInstanceCost(
+        const costData = await this.calculateInstanceCost(
           instanceType,
           dayStart,
           dayEnd,
@@ -434,7 +505,7 @@ export class BillingService {
 
     if (storageLogs.length === 0) return;
 
-    const pricing = this.getPricing();
+    const pricing = await this.getPricing();
     const dailyStorageFee = pricing.objectStorage.baseFee / 30; // 按30天计算每日费用
 
     // 对每一天添加存储基础费用
