@@ -77,30 +77,6 @@
       </button>
     </div>
 
-    <!-- 趋势图表 -->
-    <div
-      v-if="selectedInstanceId"
-      class="charts-section"
-    >
-      <MetricsChart
-        title="CPU 使用率"
-        metric="cpu"
-        color="#3b82f6"
-        unit="%"
-        chart-id="cpu-chart"
-        ref="cpuChart"
-      />
-      
-      <MetricsChart
-        title="内存使用率"
-        metric="memory"
-        color="#ef4444"
-        unit="%"
-        chart-id="memory-chart"
-        ref="memoryChart"
-      />
-    </div>
-
     <!-- 系统状态面板 -->
     <div
       v-if="selectedInstanceId && currentStatus.cpu > 0"
@@ -251,6 +227,32 @@
       <p>请在上方选择一个实例来查看其监控数据</p>
     </div>
 
+    <!-- 趋势图表 - 移到页面底部 -->
+    <div v-if="selectedInstanceId" class="charts-section">
+      <div class="charts-header">
+        <h2>📈 监控趋势图表</h2>
+        <p class="charts-subtitle">实时系统性能趋势分析</p>
+      </div>
+
+      <MetricsChart
+        ref="cpuChart"
+        title="CPU 使用率"
+        metric="cpu"
+        color="#3b82f6"
+        unit="%"
+        chart-id="cpu-chart"
+      />
+
+      <MetricsChart
+        ref="memoryChart"
+        title="内存使用率"
+        metric="memory"
+        color="#ef4444"
+        unit="%"
+        chart-id="memory-chart"
+      />
+    </div>
+
     <!-- 更新时间显示 -->
     <div v-if="lastUpdateTime" class="last-update">
       最后更新: {{ formatDate(lastUpdateTime.toISOString()) }}
@@ -309,9 +311,9 @@ onMounted(async () => {
       await loadMonitoringData();
     }
   } catch (error) {
-    console.warn('加载实例失败，使用本地监控模式:', error);
+    console.warn("加载实例失败，使用本地监控模式:", error);
     // API调用失败时也显示本地监控
-    selectedInstanceId.value = 999999; // 虚拟实例ID  
+    selectedInstanceId.value = 999999; // 虚拟实例ID
     await loadMonitoringData();
   }
 });
@@ -324,14 +326,14 @@ onUnmounted(() => {
 // 获取本地系统真实监控数据
 const getLocalSystemMetrics = async () => {
   try {
-    const response = await fetch('/monitor-api/metrics');
+    const response = await fetch("/monitor-api/metrics");
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const data = await response.json();
     return data;
   } catch (error: any) {
-    console.warn('无法获取本地监控数据:', error.message);
+    console.warn("无法获取本地监控数据:", error.message);
     throw error;
   }
 };
@@ -366,7 +368,7 @@ const loadMonitoringData = async () => {
     return;
   } catch (localErr: any) {
     console.warn("本地监控服务不可用，尝试远程数据源");
-    
+
     try {
       // 备用方案：获取实例配置和监控数据
       const [metricsData, instanceConfig] = await Promise.all([
@@ -661,7 +663,29 @@ const formatDate = (dateString: string): string => {
 <style scoped>
 /* 图表部分样式 */
 .charts-section {
+  margin-top: 40px;
   margin-bottom: 20px;
+}
+
+.charts-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+}
+
+.charts-header h2 {
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.charts-subtitle {
+  color: #b0b0b0;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
 }
 
 .monitoring-container {

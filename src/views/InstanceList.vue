@@ -118,7 +118,7 @@
             <span class="resource-value cost">${{ getMonthlyCost() }}</span>
           </div>
         </div>
-        
+
         <!-- V3新增：详细费用预估按钮 -->
         <CostEstimateButton />
       </div>

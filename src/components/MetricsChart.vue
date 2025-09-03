@@ -3,21 +3,21 @@
     <div class="chart-header">
       <h3>{{ title }}</h3>
       <div class="chart-controls">
-        <button 
+        <button
           class="time-range-btn"
           :class="{ active: timeRange === 15 }"
           @click="changeTimeRange(15)"
         >
           15分钟
         </button>
-        <button 
+        <button
           class="time-range-btn"
           :class="{ active: timeRange === 30 }"
           @click="changeTimeRange(30)"
         >
           30分钟
         </button>
-        <button 
+        <button
           class="time-range-btn"
           :class="{ active: timeRange === 60 }"
           @click="changeTimeRange(60)"
@@ -26,9 +26,9 @@
         </button>
       </div>
     </div>
-    
+
     <div class="chart-wrapper" :class="{ loading: isLoading }">
-      <canvas ref="chartCanvas" :id="chartId"></canvas>
+      <canvas :id="chartId" ref="chartCanvas"></canvas>
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner"></div>
         <p>加载数据中...</p>
@@ -36,14 +36,14 @@
       <div v-if="error" class="error-overlay">
         <span class="error-icon">⚠️</span>
         <p>{{ error }}</p>
-        <button @click="fetchData" class="retry-btn">重试</button>
+        <button class="retry-btn" @click="fetchData">重试</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -53,8 +53,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
-} from 'chart.js'
+  Filler,
+} from "chart.js";
 // 移除vue-chartjs导入，直接使用Chart.js
 
 // 注册Chart.js组件
@@ -66,46 +66,48 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
-)
+  Filler,
+);
 
 interface Props {
-  title: string
-  metric: 'cpu' | 'memory'
-  color: string
-  unit: string
-  chartId: string
+  title: string;
+  metric: "cpu" | "memory";
+  color: string;
+  unit: string;
+  chartId: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: '系统指标',
-  metric: 'cpu',
-  color: '#3b82f6',
-  unit: '%',
-  chartId: 'default-chart'
-})
+  title: "系统指标",
+  metric: "cpu",
+  color: "#3b82f6",
+  unit: "%",
+  chartId: "default-chart",
+});
 
-const chartCanvas = ref<HTMLCanvasElement>()
-const chart = ref<ChartJS | null>(null)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-const timeRange = ref(30)
+const chartCanvas = ref<HTMLCanvasElement>();
+const chart = ref<ChartJS | null>(null);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const timeRange = ref(30);
 
 // 图表数据
 const chartData = ref({
   labels: [],
-  datasets: [{
-    label: props.title,
-    data: [],
-    borderColor: props.color,
-    backgroundColor: props.color + '20',
-    fill: true,
-    tension: 0.4,
-    pointRadius: 2,
-    pointHoverRadius: 4,
-    borderWidth: 2
-  }]
-})
+  datasets: [
+    {
+      label: props.title,
+      data: [],
+      borderColor: props.color,
+      backgroundColor: props.color + "20",
+      fill: true,
+      tension: 0.4,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      borderWidth: 2,
+    },
+  ],
+});
 
 // 图表配置
 const chartOptions = {
@@ -113,167 +115,171 @@ const chartOptions = {
   maintainAspectRatio: false,
   interaction: {
     intersect: false,
-    mode: 'index' as const,
+    mode: "index" as const,
   },
   plugins: {
     legend: {
-      display: false
+      display: false,
     },
     tooltip: {
       enabled: true,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      titleColor: '#fff',
-      bodyColor: '#fff',
-      borderColor: 'rgba(255, 255, 255, 0.2)',
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      titleColor: "#fff",
+      bodyColor: "#fff",
+      borderColor: "rgba(255, 255, 255, 0.2)",
       borderWidth: 1,
       cornerRadius: 8,
-      displayColors: false
-    }
+      displayColors: false,
+    },
   },
   scales: {
     x: {
       display: true,
       grid: {
-        display: false
+        display: false,
       },
       ticks: {
         maxTicksLimit: 6,
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: "rgba(255, 255, 255, 0.6)",
         font: {
-          size: 11
-        }
-      }
+          size: 11,
+        },
+      },
     },
     y: {
       display: true,
       beginAtZero: true,
       max: 100,
       grid: {
-        color: 'rgba(255, 255, 255, 0.1)'
+        color: "rgba(255, 255, 255, 0.1)",
       },
       ticks: {
-        callback: function(value: any) {
-          return value + props.unit
+        callback: function (value: any) {
+          return value + props.unit;
         },
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: "rgba(255, 255, 255, 0.6)",
         font: {
-          size: 11
-        }
-      }
-    }
+          size: 11,
+        },
+      },
+    },
   },
   elements: {
     point: {
       hoverBackgroundColor: props.color,
-      hoverBorderColor: '#fff',
-      hoverBorderWidth: 2
-    }
-  }
-}
+      hoverBorderColor: "#fff",
+      hoverBorderWidth: 2,
+    },
+  },
+};
 
 // 获取历史数据
 const fetchData = async () => {
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
 
   try {
-    const response = await fetch(`/monitor-api/history?minutes=${timeRange.value}`)
+    const response = await fetch(
+      `/monitor-api/history?minutes=${timeRange.value}`,
+    );
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json()
-    
+    const data = await response.json();
+
     if (data.dataPoints && data.dataPoints.length > 0) {
-      const labels = data.dataPoints.map((point: any) => point.timestamp)
-      const values = data.dataPoints.map((point: any) => point[props.metric])
+      const labels = data.dataPoints.map((point: any) => point.timestamp);
+      const values = data.dataPoints.map((point: any) => point[props.metric]);
 
       chartData.value = {
         labels,
-        datasets: [{
-          ...chartData.value.datasets[0],
-          data: values
-        }]
-      }
+        datasets: [
+          {
+            ...chartData.value.datasets[0],
+            data: values,
+          },
+        ],
+      };
 
-      updateChart()
+      updateChart();
     } else {
-      error.value = '暂无监控数据'
+      error.value = "暂无监控数据";
     }
   } catch (err: any) {
-    console.error('获取监控数据失败:', err)
-    error.value = `获取数据失败: ${err.message}`
+    console.error("获取监控数据失败:", err);
+    error.value = `获取数据失败: ${err.message}`;
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 // 更新图表
 const updateChart = () => {
   if (chart.value) {
-    chart.value.data = chartData.value
-    chart.value.update('none')
+    chart.value.data = chartData.value;
+    chart.value.update("none");
   }
-}
+};
 
 // 创建图表
 const createChart = async () => {
-  await nextTick()
+  await nextTick();
   if (chartCanvas.value) {
     chart.value = new ChartJS(chartCanvas.value, {
-      type: 'line',
+      type: "line",
       data: chartData.value,
-      options: chartOptions
-    })
+      options: chartOptions,
+    });
   }
-}
+};
 
 // 销毁图表
 const destroyChart = () => {
   if (chart.value) {
-    chart.value.destroy()
-    chart.value = null
+    chart.value.destroy();
+    chart.value = null;
   }
-}
+};
 
 // 改变时间范围
 const changeTimeRange = async (minutes: number) => {
-  if (timeRange.value === minutes) return
-  timeRange.value = minutes
-  await fetchData()
-}
+  if (timeRange.value === minutes) return;
+  timeRange.value = minutes;
+  await fetchData();
+};
 
 // 自动刷新
-let autoRefreshTimer: ReturnType<typeof setInterval> | null = null
+let autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
 const startAutoRefresh = () => {
-  stopAutoRefresh()
-  autoRefreshTimer = setInterval(fetchData, 60000) // 每分钟刷新
-}
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(fetchData, 60000); // 每分钟刷新
+};
 
 const stopAutoRefresh = () => {
   if (autoRefreshTimer) {
-    clearInterval(autoRefreshTimer)
-    autoRefreshTimer = null
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
   }
-}
+};
 
 // 生命周期
 onMounted(async () => {
-  await createChart()
-  await fetchData()
-  startAutoRefresh()
-})
+  await createChart();
+  await fetchData();
+  startAutoRefresh();
+});
 
 onUnmounted(() => {
-  stopAutoRefresh()
-  destroyChart()
-})
+  stopAutoRefresh();
+  destroyChart();
+});
 
 // 暴露刷新方法
 defineExpose({
-  refresh: fetchData
-})
+  refresh: fetchData,
+});
 </script>
 
 <style scoped>
@@ -406,17 +412,17 @@ defineExpose({
     padding: 12px;
     margin-bottom: 12px;
   }
-  
+
   .chart-header {
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
   }
-  
+
   .chart-wrapper {
     height: 180px;
   }
-  
+
   .time-range-btn {
     padding: 6px 10px;
     font-size: 13px;
